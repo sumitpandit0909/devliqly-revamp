@@ -27,3 +27,6 @@ dist-ssr
 .claude
 .vercel
 .env*
+
+.vercel
+.env*

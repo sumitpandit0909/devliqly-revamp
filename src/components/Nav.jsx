@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { gsap, ScrollTrigger, useGSAP, scrollToHash, lenisRef } from '../lib/motion'
 import { navigate } from '../lib/router'
-import { NAV } from '../data'
+import { NAV, SERVICES } from '../data'
 import Logo from './Logo'
 import Magnetic from './Magnetic'
 import { useOpenDemo } from '../lib/demo'
@@ -9,6 +9,8 @@ import { useOpenDemo } from '../lib/demo'
 export default function Nav() {
   const root = useRef(null)
   const [open, setOpen] = useState(false)
+  // Closes the services dropdown after a pick, even while the pointer is still over it
+  const [dropDismissed, setDropDismissed] = useState(false)
   const openDemo = useOpenDemo()
 
   useGSAP(() => {
@@ -36,8 +38,12 @@ export default function Nav() {
     if (open) gsap.fromTo('.menu__link', { yPercent: 120 }, { yPercent: 0, stagger: 0.06, duration: 0.8, ease: 'power4.out', delay: 0.2 })
   }, [open])
 
-  // The logo goes home from other pages and back to the top on the home page
-  const follow = (href) => (href === '/' && window.location.pathname !== '/' ? navigate('/') : scrollToHash(href === '/' ? '#top' : href))
+  // Page links use the router (the logo scrolls to the top when already home); hashes scroll
+  const follow = (href) => {
+    if (href === '/' && window.location.pathname === '/') return scrollToHash('#top')
+    if (href.startsWith('/')) return navigate(href)
+    scrollToHash(href)
+  }
 
   const go = (e, href) => {
     e.preventDefault()
@@ -55,11 +61,37 @@ export default function Nav() {
           <Logo />
         </a>
         <nav className="nav__links" aria-label="Primary">
-          {NAV.map((n) => (
+          {NAV.map((n) => (n.href === '#services' ? (
+            <div className={`nav__item ${dropDismissed ? 'is-dismissed' : ''}`} key={n.href} onMouseLeave={() => setDropDismissed(false)}>
+              <a href={n.href} onClick={(e) => go(e, n.href)} className="nav__link nav__link--drop" aria-haspopup="true">
+                <span data-text={n.label}>{n.label}</span>
+                <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M2 4.5l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.6" /></svg>
+              </a>
+              <div className="nav__drop">
+                <ul className="nav__drop-panel">
+                  {SERVICES.map((s) => (
+                    <li key={s.id}>
+                      <a
+                        href={`/services/${s.slug}`}
+                        onClick={(e) => { go(e, `/services/${s.slug}`); e.currentTarget.blur(); setDropDismissed(true) }}
+                        className="nav__drop-link"
+                      >
+                        <span className="nav__drop-no">{s.no}</span>
+                        <span>
+                          <b>{s.title}</b>
+                          <small>{s.tag}</small>
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ) : (
             <a key={n.href} href={n.href} onClick={(e) => go(e, n.href)} className="nav__link">
               <span data-text={n.label}>{n.label}</span>
             </a>
-          ))}
+          )))}
         </nav>
         <Magnetic>
           <button type="button" onClick={() => openDemo()} className="btn btn--small nav__cta">
@@ -83,6 +115,17 @@ export default function Nav() {
               <a className="menu__link" href={n.href} onClick={(e) => go(e, n.href)} tabIndex={open ? 0 : -1}>
                 <sup>0{i + 1}</sup>{n.label}
               </a>
+              {n.href === '#services' && (
+                <ul className="menu__sub">
+                  {SERVICES.map((s) => (
+                    <li key={s.id}>
+                      <a href={`/services/${s.slug}`} onClick={(e) => go(e, `/services/${s.slug}`)} tabIndex={open ? 0 : -1}>
+                        {s.title}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           ))}
           <div className="menu__mask">

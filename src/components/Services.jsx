@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { gsap, useGSAP, prefersReducedMotion } from '../lib/motion'
 import { SERVICES } from '../data'
+import { navigate } from '../lib/router'
 import ServiceVisual from './ServiceVisual'
 
 export default function Services() {
@@ -87,7 +88,14 @@ export default function Services() {
         </div>
         <div className="services__track" ref={track}>
           {SERVICES.map((s) => (
-            <article className="svc" key={s.id} id={`svc-${s.id}`} data-cursor="Explore">
+            <article
+              className="svc"
+              key={s.id}
+              id={`svc-${s.id}`}
+              data-cursor="Explore"
+              // The whole card opens the service page; the title link keeps it keyboard-accessible
+              onClick={(e) => { if (!e.target.closest('a')) navigate(`/services/${s.slug}`) }}
+            >
               <div className="svc__top">
                 <span className="svc__no">{s.no}</span>
                 <span className="svc__tag label">{s.tag}</span>

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { gsap, useGSAP, scrollToHash, prefersReducedMotion } from '../lib/motion'
 import Magnetic from './Magnetic'
 import HeroField from './HeroField'
+import { useOpenDemo } from '../lib/demo'
 
 const LINES = [
   ['AI agents that'],
@@ -32,6 +33,7 @@ export default function Hero({ ready }) {
   const root = useRef(null)
   const intro = useRef(null)
   const [cap, setCap] = useState(0)
+  const openDemo = useOpenDemo()
 
   // Cycle the live transcript captions
   useEffect(() => {
@@ -119,9 +121,9 @@ export default function Hero({ ready }) {
           </p>
           <div className="hero__actions">
             <Magnetic>
-              <a href="#contact" className="btn" onClick={go('#contact')}>
+              <button type="button" className="btn" onClick={() => openDemo()}>
                 Book a free demo <Arrow />
-              </a>
+              </button>
             </Magnetic>
             <a href="#services" className="btn btn--ghost" onClick={go('#services')}>
               Explore services

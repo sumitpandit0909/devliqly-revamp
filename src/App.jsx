@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Lenis from 'lenis'
 import { gsap, ScrollTrigger, lenisRef, prefersReducedMotion, scrollToHash } from './lib/motion'
 import Preloader from './components/Preloader'
@@ -16,9 +16,14 @@ import Testimonials from './components/Testimonials'
 import Faq from './components/Faq'
 import Cta from './components/Cta'
 import Footer from './components/Footer'
+import DemoModal from './components/DemoModal'
+import { DemoContext } from './lib/demo'
 
 export default function App() {
   const [loaded, setLoaded] = useState(false)
+  const [demo, setDemo] = useState({ open: false, service: '' })
+  const openDemo = useCallback((service = '') => setDemo({ open: true, service: typeof service === 'string' ? service : '' }), [])
+  const closeDemo = useCallback(() => setDemo((d) => ({ ...d, open: false })), [])
 
   useEffect(() => {
     if (prefersReducedMotion()) return
@@ -63,7 +68,7 @@ export default function App() {
   }, [loaded])
 
   return (
-    <>
+    <DemoContext.Provider value={openDemo}>
       <Preloader onDone={() => setLoaded(true)} />
       <Cursor />
       <div className="grain" aria-hidden="true" />
@@ -82,6 +87,7 @@ export default function App() {
         <Cta />
       </main>
       <Footer />
-    </>
+      <DemoModal open={demo.open} service={demo.service} onClose={closeDemo} />
+    </DemoContext.Provider>
   )
 }

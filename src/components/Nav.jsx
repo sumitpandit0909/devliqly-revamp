@@ -3,10 +3,12 @@ import { gsap, ScrollTrigger, useGSAP, scrollToHash, lenisRef } from '../lib/mot
 import { NAV } from '../data'
 import Logo from './Logo'
 import Magnetic from './Magnetic'
+import { useOpenDemo } from '../lib/demo'
 
 export default function Nav() {
   const root = useRef(null)
   const [open, setOpen] = useState(false)
+  const openDemo = useOpenDemo()
 
   useGSAP(() => {
     // Hide on scroll down, reveal on scroll up; solid background after the hero
@@ -54,9 +56,9 @@ export default function Nav() {
           ))}
         </nav>
         <Magnetic>
-          <a href="#contact" onClick={(e) => go(e, '#contact')} className="btn btn--small nav__cta">
+          <button type="button" onClick={() => openDemo()} className="btn btn--small nav__cta">
             Book a demo
-          </a>
+          </button>
         </Magnetic>
         <button
           className="nav__burger"
@@ -77,6 +79,11 @@ export default function Nav() {
               </a>
             </div>
           ))}
+          <div className="menu__mask">
+            <button type="button" className="btn menu__cta" tabIndex={open ? 0 : -1} onClick={() => { setOpen(false); openDemo() }}>
+              Book a free demo
+            </button>
+          </div>
         </nav>
       </div>
     </>

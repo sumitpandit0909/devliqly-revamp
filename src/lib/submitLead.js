@@ -7,7 +7,7 @@ const ENDPOINT = `https://formsubmit.co/ajax/${CONTACT.email}`
 
 export async function submitLead(fields, { subject }) {
   const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), 15000)
+  const timer = setTimeout(() => controller.abort(), 30000)
   try {
     const res = await fetch(ENDPOINT, {
       method: 'POST',

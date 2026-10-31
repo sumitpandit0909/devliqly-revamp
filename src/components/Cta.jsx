@@ -49,7 +49,7 @@ export default function Cta() {
             </Magnetic>
           </div>
 
-          <div className="cta__form">
+          <div className="cta__form" id="contact-form" data-scroll-focus>
             <h3 className="cta__form-title">Send us a message</h3>
             <LeadForm variant="contact" />
           </div>

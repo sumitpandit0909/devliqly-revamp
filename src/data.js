@@ -4,6 +4,7 @@ export const NAV = [
   { label: 'Process', href: '#process' },
   { label: 'Clients', href: '#clients' },
   { label: 'FAQ', href: '#faq' },
+  { label: 'Contact', href: '#contact-form' },
 ]
 
 export const SERVICES = [

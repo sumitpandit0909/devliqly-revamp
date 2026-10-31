@@ -37,8 +37,10 @@ export default function Nav() {
 
   const go = (e, href) => {
     e.preventDefault()
+    if (!open) return scrollToHash(href)
+    // Smooth scrolling is paused while the menu is open; wait for it to resume before scrolling
     setOpen(false)
-    scrollToHash(href)
+    setTimeout(() => scrollToHash(href), 80)
   }
 
   return (
@@ -72,7 +74,7 @@ export default function Nav() {
 
       <div className={`menu ${open ? 'is-open' : ''}`} aria-hidden={!open}>
         <nav className="menu__inner">
-          {NAV.concat({ label: 'Contact', href: '#contact' }).map((n, i) => (
+          {NAV.map((n, i) => (
             <div className="menu__mask" key={n.href}>
               <a className="menu__link" href={n.href} onClick={(e) => go(e, n.href)} tabIndex={open ? 0 : -1}>
                 <sup>0{i + 1}</sup>{n.label}

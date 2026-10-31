@@ -58,14 +58,14 @@ export default function LeadForm({ variant = 'contact', defaultService = '', onD
       name: v.name,
       email: v.email,
       Phone: v.phone || '—',
-      Company: v.company || '—',
       Service: v.service || 'Not sure yet',
-      ...(isDemo && { 'Preferred date': v.date || 'Flexible', 'Preferred time (IST)': v.time || 'Flexible' }),
-      Message: v.message || '—',
+      ...(isDemo
+        ? { 'Preferred date': v.date || 'Flexible', 'Preferred time (IST)': v.time || 'Flexible' }
+        : { Company: v.company || '—', Message: v.message }),
     }
     try {
       await submitLead(fields, {
-        subject: isDemo ? `New demo request: ${v.name}${v.company ? ` (${v.company})` : ''}` : `New enquiry: ${v.name}`,
+        subject: isDemo ? `New demo request: ${v.name}` : `New enquiry: ${v.name}`,
       })
       setStatus('success')
       setValues({ ...EMPTY })
@@ -124,13 +124,13 @@ export default function LeadForm({ variant = 'contact', defaultService = '', onD
         {field('name', 'Full name', <input {...common('name')} type="text" autoComplete="name" placeholder="Aarav Mehta" />, { required: true })}
         {field('email', 'Work email', <input {...common('email')} type="email" autoComplete="email" placeholder="you@company.com" />, { required: true })}
         {field('phone', 'Phone / WhatsApp', <input {...common('phone')} type="tel" autoComplete="tel" placeholder="+91 98765 43210" />, { required: isDemo })}
-        {field('company', 'Company', <input {...common('company')} type="text" autoComplete="organization" placeholder="Acme Pvt Ltd" />)}
+        {!isDemo && field('company', 'Company', <input {...common('company')} type="text" autoComplete="organization" placeholder="Acme Pvt Ltd" />)}
         {field('service', 'Interested in', (
           <select {...common('service')}>
             <option value="">Not sure yet</option>
             {SERVICES.map((s) => <option key={s.id} value={s.title}>{s.title}</option>)}
           </select>
-        ), { full: true })}
+        ), { full: !isDemo })}
         {isDemo && field('date', 'Preferred date', <input {...common('date')} type="date" min={todayISO()} />)}
         {isDemo && field('time', 'Preferred time (IST)', (
           <select {...common('time')}>
@@ -138,13 +138,13 @@ export default function LeadForm({ variant = 'contact', defaultService = '', onD
             {TIME_SLOTS.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
         ))}
-        {field('message', isDemo ? 'Anything we should know?' : 'How can we help?', (
+        {!isDemo && field('message', 'How can we help?', (
           <textarea
             {...common('message')}
-            rows={isDemo ? 3 : 4}
-            placeholder={isDemo ? 'e.g. We get ~300 support calls a day and want to automate order-status queries.' : 'Tell us about your business and what you’d like an AI agent to handle.'}
+            rows={4}
+            placeholder="Tell us about your business and what you’d like an AI agent to handle."
           />
-        ), { required: !isDemo, full: true })}
+        ), { required: true, full: true })}
       </div>
 
       {status === 'error' && (

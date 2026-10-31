@@ -103,7 +103,7 @@ export default function Services() {
           <div className="svc svc--end">
             <p className="h2">Need something <em>different?</em></p>
             <p className="svc__desc">If it involves a conversation or a repetitive task, we can build an agent for it.</p>
-            <a href="#contact" className="btn">Tell us your use case</a>
+            <a href="#contact-form" className="btn">Tell us your use case</a>
           </div>
         </div>
       </div>

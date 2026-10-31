@@ -48,6 +48,20 @@ body {
   overflow-x: clip;
 }
 ::selection { background: var(--accent); color: var(--on-accent); }
+
+/* Themed scrollbars: WebKit/Blink get a rounded gradient thumb, Firefox gets matching colours */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  border-radius: 10px; border: 2px solid var(--bg);
+}
+::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, var(--accent-light), var(--accent-2)); }
+::-webkit-scrollbar-corner { background: var(--bg); }
+@supports (-moz-appearance: none) {
+  html { scrollbar-color: var(--accent) var(--bg); scrollbar-width: thin; }
+  .modal__panel, .field textarea { scrollbar-color: rgba(var(--accent-rgb), 0.7) transparent; scrollbar-width: thin; }
+}
 a { color: inherit; text-decoration: none; }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
 img, svg { display: block; }
@@ -636,17 +650,23 @@ button.btn--ghost { border: 1px solid var(--line-2); }
 }
 @keyframes fadeIn { from { opacity: 0; } }
 .modal__panel {
-  position: relative; width: min(680px, 100%); max-height: calc(100dvh - 40px); overflow-y: auto; overscroll-behavior: contain;
+  position: relative; width: min(600px, 100%); max-height: calc(100dvh - 40px); overflow-y: auto; overscroll-behavior: contain;
   padding: clamp(24px, 4vw, 40px); border-radius: 28px;
   background: linear-gradient(160deg, #1a1a25, #111118 60%); border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 50px 120px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(var(--accent-rgb), 0.15);
   animation: modalIn 0.55s var(--ease) both;
 }
 @keyframes modalIn { from { opacity: 0; transform: translateY(30px) scale(0.97); } }
+.modal__panel::-webkit-scrollbar { width: 8px; }
+.modal__panel::-webkit-scrollbar-track { background: transparent; margin: 24px 0; }
+.modal__panel::-webkit-scrollbar-thumb { border: 2px solid #15151d; }
+.field textarea::-webkit-scrollbar { width: 8px; }
+.field textarea::-webkit-scrollbar-track { background: transparent; margin: 6px 0; }
+.field textarea::-webkit-scrollbar-thumb { border-color: #0d0d12; }
 .modal__close { position: absolute; top: 18px; right: 18px; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--line-2); color: var(--muted); transition: color 0.3s, background 0.3s, transform 0.4s var(--ease); }
 .modal__close:hover { color: var(--text); background: rgba(255, 255, 255, 0.06); transform: rotate(90deg); }
 .modal__title { font-family: var(--f-display); font-weight: 700; font-size: clamp(32px, 4vw, 46px); letter-spacing: -0.03em; line-height: 1.05; margin-top: 10px; }
-.modal__sub { color: var(--muted); margin: 12px 0 26px; max-width: 52ch; }
+.modal__sub { color: var(--muted); margin: 8px 0 22px; max-width: 52ch; }
 .menu__cta { margin-top: 28px; }
 
 /* ============ Footer ============ */

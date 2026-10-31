@@ -43,7 +43,7 @@ export default function DemoModal({ open, service, onClose }) {
         </button>
         <p className="label">( Free 30-min demo )</p>
         <h2 id="demo-title" className="modal__title">Book a <em>demo</em></h2>
-        <p className="modal__sub">See a live AI agent built around your use case. Pick a time that suits you and we’ll confirm within one business day.</p>
+        <p className="modal__sub">Pick a slot and we’ll confirm within one business day.</p>
         <LeadForm variant="demo" defaultService={service} onDone={onClose} />
       </div>
     </div>

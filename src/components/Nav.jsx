@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { gsap, ScrollTrigger, useGSAP, scrollToHash, lenisRef } from '../lib/motion'
+import { navigate } from '../lib/router'
 import { NAV } from '../data'
 import Logo from './Logo'
 import Magnetic from './Magnetic'
@@ -35,19 +36,22 @@ export default function Nav() {
     if (open) gsap.fromTo('.menu__link', { yPercent: 120 }, { yPercent: 0, stagger: 0.06, duration: 0.8, ease: 'power4.out', delay: 0.2 })
   }, [open])
 
+  // The logo goes home from other pages and back to the top on the home page
+  const follow = (href) => (href === '/' && window.location.pathname !== '/' ? navigate('/') : scrollToHash(href === '/' ? '#top' : href))
+
   const go = (e, href) => {
     e.preventDefault()
-    if (!open) return scrollToHash(href)
+    if (!open) return follow(href)
     // Smooth scrolling is paused while the menu is open; wait for it to resume before scrolling
     setOpen(false)
-    setTimeout(() => scrollToHash(href), 80)
+    setTimeout(() => follow(href), 80)
   }
 
   return (
     <>
       <div className="progress" aria-hidden="true"><i /></div>
       <header className={`nav ${open ? 'is-open' : ''}`} ref={root}>
-        <a href="#top" className="nav__logo" onClick={(e) => go(e, '#top')} aria-label="Devliqly home">
+        <a href="/" className="nav__logo" onClick={(e) => go(e, '/')} aria-label="Devliqly home">
           <Logo />
         </a>
         <nav className="nav__links" aria-label="Primary">

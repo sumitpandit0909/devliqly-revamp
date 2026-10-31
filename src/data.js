@@ -10,6 +10,7 @@ export const NAV = [
 export const SERVICES = [
   {
     id: 'chatbot',
+    slug: 'chatbot-integration',
     no: '01',
     title: 'Chatbot Integration',
     tag: 'Web · WhatsApp · Instagram',
@@ -19,6 +20,7 @@ export const SERVICES = [
   },
   {
     id: 'support',
+    slug: 'customer-service-agent',
     no: '02',
     title: 'Customer Service Agent',
     tag: 'Support · Helpdesk · Tickets',
@@ -28,6 +30,7 @@ export const SERVICES = [
   },
   {
     id: 'calls',
+    slug: 'call-agents',
     no: '03',
     title: 'Inbound & Outbound Call Agents',
     tag: 'Telephony · IVR · Campaigns',
@@ -37,6 +40,7 @@ export const SERVICES = [
   },
   {
     id: 'voice',
+    slug: 'voice-agents',
     no: '04',
     title: 'Voice Agents',
     tag: 'Real-time · Low latency',
@@ -46,6 +50,7 @@ export const SERVICES = [
   },
   {
     id: 'workflow',
+    slug: 'custom-agent-workflows',
     no: '05',
     title: 'Custom Agent Workflows',
     tag: 'Automation · Integrations · Ops',
@@ -101,5 +106,6 @@ export const FAQS = [
 
 export const CONTACT = {
   phone: '+91-7827626940',
-  email: 'contact.devliqly@gmail.com',
+  email: 'contact@devliqly.in',
+  legal: 'legal@devliqly.in',
 }

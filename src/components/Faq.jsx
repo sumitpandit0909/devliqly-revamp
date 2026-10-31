@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { gsap, useGSAP, prefersReducedMotion } from '../lib/motion'
 import { FAQS } from '../data'
 
-export default function Faq() {
+export default function Faq({ items = FAQS, title = <>Questions, <em>answered</em></> }) {
   const root = useRef(null)
   const [open, setOpen] = useState(0)
 
@@ -16,10 +16,10 @@ export default function Faq() {
       <div className="container faq__grid">
         <div className="faq__side">
           <p className="label">( FAQ )</p>
-          <h2 className="h2">Questions, <em>answered</em></h2>
+          <h2 className="h2">{title}</h2>
         </div>
         <div className="faq__list">
-          {FAQS.map((f, i) => (
+          {items.map((f, i) => (
             <div className={`faq__item ${open === i ? 'is-open' : ''}`} key={f.q}>
               <button className="faq__q" aria-expanded={open === i} onClick={() => setOpen(open === i ? -1 : i)}>
                 <span>{f.q}</span>

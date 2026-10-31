@@ -93,11 +93,12 @@ export default function Services() {
                 <span className="svc__tag label">{s.tag}</span>
               </div>
               <div className="svc__visual"><ServiceVisual type={s.visual} /></div>
-              <h3 className="svc__title">{s.title}</h3>
+              <h3 className="svc__title"><a href={`/services/${s.slug}`} className="svc__link">{s.title}</a></h3>
               <p className="svc__desc">{s.desc}</p>
               <ul className="svc__points">
                 {s.points.map((p) => <li key={p}>{p}</li>)}
               </ul>
+              <span className="svc__more" aria-hidden="true">Explore service ↗</span>
             </article>
           ))}
           <div className="svc svc--end">

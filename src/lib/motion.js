@@ -1,6 +1,7 @@
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
+import { navigate } from './router'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
@@ -12,7 +13,11 @@ export const lenisRef = { current: null }
 
 export function scrollToHash(hash) {
   const target = hash === '#top' ? 0 : document.querySelector(hash)
-  if (target === null) return
+  if (target === null) {
+    // Home-page sections linked from another page: go home, and App scrolls to the hash on arrival
+    if (window.location.pathname !== '/') navigate('/' + hash)
+    return
+  }
   // Targets marked data-scroll-focus leave room for the nav and focus their first field on arrival
   const focusable = target !== 0 && target.hasAttribute('data-scroll-focus')
   const focus = (tries = 0) => {
@@ -25,8 +30,10 @@ export function scrollToHash(hash) {
     }
     target.querySelector('input:not([tabindex="-1"]), textarea, select')?.focus({ preventScroll: true })
   }
+  // data-scroll-offset lets a target keep its heading clear of the fixed nav
+  const offset = target === 0 ? 0 : Number(target.dataset.scrollOffset ?? (focusable ? -100 : 0))
   if (lenisRef.current) {
-    lenisRef.current.scrollTo(target, { offset: focusable ? -100 : 0, duration: 1.4, onComplete: focusable ? () => focus() : undefined })
+    lenisRef.current.scrollTo(target, { offset, duration: 1.4, onComplete: focusable ? () => focus() : undefined })
   } else if (target === 0) {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   } else {

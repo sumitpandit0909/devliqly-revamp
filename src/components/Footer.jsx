@@ -39,19 +39,20 @@ export default function Footer() {
           </div>
           <div>
             <h4 className="label">Services</h4>
-            {SERVICES.map((s) => <a key={s.id} href="#services">{s.title}</a>)}
+            {SERVICES.map((s) => <a key={s.id} href={`/services/${s.slug}`}>{s.title}</a>)}
           </div>
           <div>
             <h4 className="label">Quick links</h4>
-            <a href="https://www.devliqly.in/blogs">Blog</a>
-            <a href="#faq">FAQ</a>
-            <a href="#">Terms &amp; Conditions</a>
-            <a href="#">Privacy Policy</a>
+            <a href="/#faq">FAQ</a>
+            <a href="#contact-form">Contact</a>
+            <a href="/terms">Terms &amp; Conditions</a>
+            <a href="/privacy">Privacy Policy</a>
           </div>
           <div>
             <h4 className="label">Contact</h4>
             <a href={`tel:${CONTACT.phone.replace(/-/g, '')}`}>{CONTACT.phone}</a>
             <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
+            <a href={`mailto:${CONTACT.legal}`}>{CONTACT.legal}</a>
             <div className="footer__social">
               <a href="https://www.linkedin.com/" aria-label="LinkedIn">in</a>
               <a href="https://www.twitter.com/" aria-label="Twitter">x</a>

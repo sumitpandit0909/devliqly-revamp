@@ -1,9 +1,9 @@
-import { CONTACT } from '../data'
-
 // Form submissions are delivered by FormSubmit (https://formsubmit.co) to the contact inbox.
 // The first submission from a new domain triggers a one-time activation email to that inbox;
 // nothing is delivered until the "Activate Form" link in it is clicked.
-const ENDPOINT = `https://formsubmit.co/ajax/${CONTACT.email}`
+// This is the inbox the form was activated for, kept separate from the public CONTACT.email;
+// changing it needs a fresh activation on every domain.
+const ENDPOINT = 'https://formsubmit.co/ajax/contact.devliqly@gmail.com'
 
 export async function submitLead(fields, { subject }) {
   const controller = new AbortController()

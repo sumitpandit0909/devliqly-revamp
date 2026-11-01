@@ -154,7 +154,7 @@ export default function BlogPost({ slug }) {
 
         {cover && (
           <figure className="container post__cover">
-            <img src={cover.src} srcSet={cover.srcSet} sizes="(max-width: 1440px) 100vw, 1440px" width={cover.width} height={cover.height} alt={cover.alt} fetchPriority="high" />
+            <img src={cover.src} srcSet={cover.srcSet} sizes="(max-width: 1140px) 100vw, 1040px" width={cover.width} height={cover.height} alt={cover.alt} fetchPriority="high" />
           </figure>
         )}
 

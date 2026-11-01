@@ -12,7 +12,7 @@ const STRAPI_URL = (process.env.STRAPI_URL || 'https://blog.devliqly.in').replac
 const TOKEN = process.env.STRAPI_TOKEN
 const CATEGORIES = ['AI Agents', 'Chatbots', 'Voice', 'Automation', 'Company']
 const LIMITS = { title: 120, excerpt: 280, seoTitle: 70, seoDescription: 170 }
-const MIN_WORDS = 600
+const MIN_WORDS = 850
 
 class CliError extends Error {}
 const fail = (msg) => {

@@ -194,21 +194,28 @@ em.outline { background: none; -webkit-text-fill-color: transparent; }
 .nav__link--drop svg { transition: transform 0.4s var(--ease); }
 .nav__item:hover .nav__link--drop, .nav__item:focus-within .nav__link--drop { color: var(--text); }
 .nav__item:hover .nav__link--drop svg, .nav__item:focus-within .nav__link--drop svg { transform: rotate(180deg); }
-.nav__drop {
-  position: absolute; top: 100%; left: -24px; padding-top: 18px;
-  opacity: 0; visibility: hidden; transform: translateY(8px);
-  transition: opacity 0.3s var(--ease), transform 0.4s var(--ease), visibility 0.3s;
+.nav__drop { position: absolute; top: 100%; left: -24px; padding-top: 18px; visibility: hidden; transition: visibility 0s 0.45s; }
+.nav__item:hover .nav__drop, .nav__item:focus-within .nav__drop { visibility: visible; transition-delay: 0s; }
+.nav__item.is-dismissed .nav__drop, .nav.is-hidden .nav__drop { visibility: hidden; }
+
+/* Rectangular blocks that drop in one after another (--i is each row's index) */
+.nav__drop-panel { width: 360px; display: grid; gap: 2px; }
+.nav__drop-panel li {
+  opacity: 0; transform: translateY(-14px);
+  transition: opacity 0.25s var(--ease), transform 0.35s var(--ease);
 }
-.nav__item:hover .nav__drop, .nav__item:focus-within .nav__drop { opacity: 1; visibility: visible; transform: none; }
-.nav__item.is-dismissed .nav__drop, .nav.is-hidden .nav__drop { opacity: 0; visibility: hidden; transform: translateY(8px); }
-.nav__drop-panel {
-  width: 360px; padding: 8px; display: grid; gap: 2px; border-radius: 18px;
-  background: rgba(21, 21, 29, 0.96); border: 1px solid var(--line-2);
-  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(var(--accent-rgb), 0.08);
-  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+.nav__item:hover .nav__drop-panel li, .nav__item:focus-within .nav__drop-panel li {
+  opacity: 1; transform: none;
+  transition-duration: 0.45s, 0.55s; transition-delay: calc(var(--i) * 70ms);
 }
-.nav__drop-link { display: flex; gap: 14px; align-items: flex-start; padding: 12px 14px; border-radius: 12px; transition: background 0.3s; }
-.nav__drop-link:hover, .nav__drop-link:focus-visible { background: var(--accent-soft); }
+.nav__item.is-dismissed .nav__drop-panel li, .nav.is-hidden .nav__drop-panel li { opacity: 0; transform: translateY(-14px); transition-delay: 0s; }
+.nav__drop-link {
+  display: flex; gap: 14px; align-items: flex-start; padding: 14px 18px;
+  background: var(--surface-2); box-shadow: 0 18px 40px -20px rgba(0, 0, 0, 0.8);
+  transition: background 0.3s;
+}
+.nav__drop-link:hover, .nav__drop-link:focus-visible { background: var(--accent-deep); outline-offset: -2px; border-radius: 0; }
+.nav__drop-link:hover .nav__drop-no { color: var(--accent-light); }
 .nav__drop-no { font-family: var(--f-mono); font-size: 11px; color: var(--accent); padding-top: 3px; }
 .nav__drop-link b { display: block; font-weight: 500; font-size: 14.5px; color: var(--text); }
 .nav__drop-link small { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }

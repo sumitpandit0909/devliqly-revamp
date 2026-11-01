@@ -69,8 +69,8 @@ export default function Nav() {
               </a>
               <div className="nav__drop">
                 <ul className="nav__drop-panel">
-                  {SERVICES.map((s) => (
-                    <li key={s.id}>
+                  {SERVICES.map((s, i) => (
+                    <li key={s.id} style={{ '--i': i }}>
                       <a
                         href={`/services/${s.slug}`}
                         onClick={(e) => { go(e, `/services/${s.slug}`); e.currentTarget.blur(); setDropDismissed(true) }}

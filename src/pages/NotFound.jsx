@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
-import { setPageMeta } from '../lib/router'
+import { applyMeta, notFoundMeta } from '../lib/seo'
 
 export default function NotFound() {
   useEffect(() => {
-    setPageMeta('Page not found | DEVLIQLY')
+    applyMeta(notFoundMeta())
   }, [])
 
   return (

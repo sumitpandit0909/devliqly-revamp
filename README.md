@@ -21,20 +21,34 @@ npm run build    # production build in dist/
 
 ## Blog (Strapi)
 
-Blog posts are managed in the Strapi app in `cms/` (local only for now, SQLite database).
+Posts are written in the Strapi CMS in `cms/` (hosted at https://blog.devliqly.in) and published on the site at `/blog` and `/blog/<slug>`.
+
+### Local development
 
 ```bash
 cd cms
 cp .env.example .env   # first time only, then replace the "tobemodified" secrets
 npm install
-npm run seed           # optional: adds a starter post when the blog is empty
+npm run seed           # optional: adds the starter posts that are missing
 npm run develop        # admin at http://localhost:1337/admin
 ```
 
-The site shows the blog (`/blog`, `/blog/<slug>`, plus Blog links in the nav and footer) only when `VITE_STRAPI_URL` is set, e.g. in `.env.development.local`:
+The site only shows the blog when `VITE_STRAPI_URL` is set, e.g. in `.env.development.local`:
 
 ```
 VITE_STRAPI_URL=http://localhost:1337
 ```
 
-Production does not set it, so devliqly.in has no blog until Strapi is hosted. To go live: deploy `cms/` (with Postgres and an upload provider), set `VITE_STRAPI_URL` in the Vercel project, and add the posts to `public/sitemap.xml`.
+### SEO: how pages reach search engines
+
+`npm run build` runs `vite build` and then `scripts/prerender.jsx`, which writes a real HTML file for every route (home, services, legal pages, the blog and each post) with its own title, description, canonical URL, Open Graph/Twitter tags, JSON-LD structured data and readable content. It also generates `sitemap.xml` and `blog/rss.xml` from the published posts. Posts are fetched from Strapi at build time, so publishing in Strapi triggers a Vercel rebuild (see `SITE_DEPLOY_HOOK` below). If Strapi is unreachable during a build, the site still deploys without pre-rendered blog pages.
+
+### Hosting the CMS on blog.devliqly.in
+
+1. Deploy `cms/` to any Node host (VPS, Railway, Render, Fly, Coolify…). A `Dockerfile` is included; without Docker run `npm ci && npm run build && npm run start`.
+2. Give it a Postgres database and a persistent disk for `public/uploads` (or configure an upload provider such as S3 or Cloudinary).
+3. Set the environment variables from `cms/.env.example`: fresh random secrets, `NODE_ENV=production`, `PUBLIC_URL=https://blog.devliqly.in`, `DATABASE_CLIENT=postgres`, `DATABASE_URL=...`.
+4. In Cloudflare DNS, point `blog` at the host (CNAME or A record) and enable HTTPS.
+5. Open https://blog.devliqly.in/admin, create the admin account and add posts.
+6. In Vercel, create a Deploy Hook (Project → Settings → Git → Deploy Hooks, branch `main`) and set its URL as `SITE_DEPLOY_HOOK` on the CMS, so publishing or editing a post rebuilds the site.
+7. In Vercel, add `VITE_STRAPI_URL=https://blog.devliqly.in` (Production) and redeploy. The Blog link, pages, sitemap entries and RSS feed then go live.

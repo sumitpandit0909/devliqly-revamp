@@ -10,14 +10,11 @@ import Integrations from '../components/Integrations'
 import Testimonials from '../components/Testimonials'
 import Faq from '../components/Faq'
 import Cta from '../components/Cta'
-import { setPageMeta } from '../lib/router'
+import { applyMeta, homeMeta } from '../lib/seo'
 
 export default function Home({ ready }) {
   useEffect(() => {
-    setPageMeta(
-      'DEVLIQLY | AI Agents That Work For You',
-      'Devliqly builds AI agents that talk, listen and work for your business: chatbot integration, customer service agents, inbound and outbound call agents, voice agents and custom agent workflows.',
-    )
+    applyMeta(homeMeta())
   }, [])
 
   return (

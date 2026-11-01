@@ -20,9 +20,3 @@ export function navigate(to) {
   window.history.pushState({}, '', url.pathname + url.hash)
   listeners.forEach((fn) => fn())
 }
-
-// Sets the tab title and meta description for the current page
-export function setPageMeta(title, description) {
-  document.title = title
-  if (description) document.querySelector('meta[name="description"]')?.setAttribute('content', description)
-}

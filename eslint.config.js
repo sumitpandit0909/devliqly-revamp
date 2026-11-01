@@ -4,12 +4,12 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 
 export default [
-  { ignores: ['dist', 'cms'] },
+  { ignores: ['dist', 'cms', '.prerender'] },
   {
     files: ['**/*.{js,jsx}'],
     languageOptions: {
       ecmaVersion: 2020,
-      globals: globals.browser,
+      globals: { ...globals.browser, ...globals.node },
       parserOptions: {
         ecmaVersion: 'latest',
         ecmaFeatures: { jsx: true },
@@ -30,4 +30,6 @@ export default [
       ],
     },
   },
+  // Build scripts are not hot-reloaded modules
+  { files: ['scripts/**'], rules: { 'react-refresh/only-export-components': 'off' } },
 ]

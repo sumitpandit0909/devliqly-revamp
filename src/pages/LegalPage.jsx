@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { gsap, useGSAP, prefersReducedMotion } from '../lib/motion'
-import { setPageMeta } from '../lib/router'
+import { applyMeta, legalMeta } from '../lib/seo'
 import { LEGAL } from '../legal'
 
 const slug = (h) => h.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
@@ -10,7 +10,7 @@ export default function LegalPage({ doc }) {
   const other = Object.values(LEGAL).find((l) => l !== doc)
 
   useEffect(() => {
-    setPageMeta(`${doc.title} | DEVLIQLY`, doc.intro)
+    applyMeta(legalMeta(doc))
   }, [doc])
 
   useGSAP(() => {

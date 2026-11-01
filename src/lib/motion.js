@@ -43,3 +43,11 @@ export function scrollToHash(hash) {
 }
 
 export { gsap, ScrollTrigger, useGSAP }
+
+// Content that arrives after a route change was measured needs scroll triggers and the smooth scroller re-measured
+export function remeasure() {
+  requestAnimationFrame(() => {
+    ScrollTrigger.refresh()
+    lenisRef.current?.resize()
+  })
+}

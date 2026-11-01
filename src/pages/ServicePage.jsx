@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { gsap, useGSAP, prefersReducedMotion } from '../lib/motion'
-import { setPageMeta } from '../lib/router'
+import { applyMeta, serviceMeta } from '../lib/seo'
 import { useOpenDemo } from '../lib/demo'
 import { SERVICES } from '../data'
 import { SERVICE_DETAILS } from '../serviceDetails'
@@ -18,7 +18,7 @@ export default function ServicePage({ service }) {
   const longestWord = Math.max(...d.headline.join(' ').split(' ').map((w) => w.length))
 
   useEffect(() => {
-    setPageMeta(`${service.title} | DEVLIQLY`, d.intro)
+    applyMeta(serviceMeta(service, d))
   }, [service, d])
 
   useGSAP(() => {

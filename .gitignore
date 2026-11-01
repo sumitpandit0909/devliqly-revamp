@@ -30,3 +30,6 @@ dist-ssr
 
 .vercel
 .env*
+
+# Prerender build output
+.prerender

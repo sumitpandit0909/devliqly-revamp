@@ -1,3 +1,5 @@
+import { assetUrl, headingAnchors } from '../lib/blog'
+
 // Renders Strapi's "blocks" rich text (paragraphs, headings, lists, quotes, code, images, links)
 function Inline({ node }) {
   if (node.type === 'link') {
@@ -19,12 +21,12 @@ function Inline({ node }) {
 
 const inlines = (children = []) => children.map((c, i) => <Inline node={c} key={i} />)
 
-function Block({ block }) {
+function Block({ block, id }) {
   switch (block.type) {
     case 'heading': {
       // The post title is the h1, so content headings start at h2
       const Tag = `h${Math.min(Math.max(block.level, 2), 6)}`
-      return <Tag>{inlines(block.children)}</Tag>
+      return <Tag id={id} data-scroll-offset="-110">{inlines(block.children)}</Tag>
     }
     case 'list': {
       const Tag = block.format === 'ordered' ? 'ol' : 'ul'
@@ -43,7 +45,7 @@ function Block({ block }) {
     case 'image':
       return (
         <figure>
-          <img src={block.image.url} alt={block.image.alternativeText || ''} width={block.image.width} height={block.image.height} loading="lazy" />
+          <img src={assetUrl(block.image.url)} alt={block.image.alternativeText || ''} width={block.image.width} height={block.image.height} loading="lazy" decoding="async" />
           {block.image.caption && <figcaption>{block.image.caption}</figcaption>}
         </figure>
       )
@@ -53,5 +55,6 @@ function Block({ block }) {
 }
 
 export default function Blocks({ content = [] }) {
-  return content.map((block, i) => <Block block={block} key={i} />)
+  const ids = new Map(headingAnchors(content).map((h) => [h.index, h.id]))
+  return content.map((block, i) => <Block block={block} id={ids.get(i)} key={i} />)
 }

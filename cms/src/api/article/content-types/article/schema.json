@@ -11,17 +11,59 @@
     "draftAndPublish": true
   },
   "attributes": {
-    "title": { "type": "string", "required": true, "maxLength": 120 },
-    "slug": { "type": "uid", "targetField": "title", "required": true },
-    "excerpt": { "type": "text", "required": true, "maxLength": 280 },
+    "title": {
+      "type": "string",
+      "required": true,
+      "maxLength": 120
+    },
+    "slug": {
+      "type": "uid",
+      "targetField": "title",
+      "required": true
+    },
+    "excerpt": {
+      "type": "text",
+      "required": true,
+      "maxLength": 280
+    },
     "category": {
       "type": "enumeration",
-      "enum": ["AI Agents", "Chatbots", "Voice", "Automation", "Company"],
+      "enum": [
+        "AI Agents",
+        "Chatbots",
+        "Voice",
+        "Automation",
+        "Company"
+      ],
       "default": "AI Agents",
       "required": true
     },
-    "cover": { "type": "media", "multiple": false, "allowedTypes": ["images"] },
-    "content": { "type": "blocks", "required": true },
-    "author": { "type": "string", "default": "Team Devliqly" }
+    "cover": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "content": {
+      "type": "blocks",
+      "required": true
+    },
+    "author": {
+      "type": "string",
+      "default": "Team Devliqly"
+    },
+    "featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "seoTitle": {
+      "type": "string",
+      "maxLength": 70
+    },
+    "seoDescription": {
+      "type": "text",
+      "maxLength": 170
+    }
   }
 }

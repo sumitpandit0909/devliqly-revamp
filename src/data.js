@@ -1,9 +1,12 @@
+import { BLOG_ENABLED } from './lib/blog'
+
 export const NAV = [
   { label: 'Services', href: '#services' },
   { label: 'How it works', href: '#demo' },
   { label: 'Process', href: '#process' },
   { label: 'Clients', href: '#clients' },
   { label: 'FAQ', href: '#faq' },
+  ...(BLOG_ENABLED ? [{ label: 'Blog', href: '/blog' }] : []),
   { label: 'Contact', href: '#contact-form' },
 ]
 

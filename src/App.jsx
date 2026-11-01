@@ -10,10 +10,13 @@ import Home from './pages/Home'
 import ServicePage from './pages/ServicePage'
 import LegalPage from './pages/LegalPage'
 import NotFound from './pages/NotFound'
+import BlogList from './pages/BlogList'
+import BlogPost from './pages/BlogPost'
 import { DemoContext } from './lib/demo'
 import { navigate, usePath } from './lib/router'
 import { SERVICES } from './data'
 import { LEGAL } from './legal'
+import { BLOG_ENABLED } from './lib/blog'
 
 function route(path, loaded) {
   if (path === '/') return <Home ready={loaded} />
@@ -21,6 +24,9 @@ function route(path, loaded) {
   if (service) return <ServicePage key={service.id} service={service} />
   const legal = Object.values(LEGAL).find((l) => l.path === path)
   if (legal) return <LegalPage key={legal.path} doc={legal} />
+  if (BLOG_ENABLED && path === '/blog') return <BlogList />
+  const post = BLOG_ENABLED && path.match(/^\/blog\/([\w-]+)$/)
+  if (post) return <BlogPost key={post[1]} slug={post[1]} />
   return <NotFound />
 }
 

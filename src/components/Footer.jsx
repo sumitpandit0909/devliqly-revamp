@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { gsap, useGSAP, prefersReducedMotion } from '../lib/motion'
 import { CONTACT, SERVICES } from '../data'
 import Logo from './Logo'
+import { BLOG_ENABLED } from '../lib/blog'
 
 export default function Footer() {
   const root = useRef(null)
@@ -44,6 +45,7 @@ export default function Footer() {
           <div>
             <h4 className="label">Quick links</h4>
             <a href="/#faq">FAQ</a>
+            {BLOG_ENABLED && <a href="/blog">Blog</a>}
             <a href="#contact-form">Contact</a>
             <a href="/terms">Terms &amp; Conditions</a>
             <a href="/privacy">Privacy Policy</a>

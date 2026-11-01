@@ -40,10 +40,14 @@ module.exports = {
 
     // The website pre-renders posts, the sitemap and the RSS feed at build time, so rebuild it when articles change
     const rebuild = rebuildTrigger(strapi);
+    // Drafts never reach the site, so only published versions (created on publish) or deletions (unpublish, delete) count
+    const ifPublished = (event) => {
+      if (event.result?.publishedAt) rebuild();
+    };
     strapi.db.lifecycles.subscribe({
       models: ['api::article.article'],
-      afterCreate: rebuild,
-      afterUpdate: rebuild,
+      afterCreate: ifPublished,
+      afterUpdate: ifPublished,
       afterDelete: rebuild,
     });
   },

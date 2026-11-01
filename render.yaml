@@ -1,5 +1,5 @@
 # Render blueprint for the blog CMS (Strapi in cms/), served at https://blog.devliqly.in
-# Database: Neon Postgres. Images: Cloudinary. Values marked sync: false are entered in Render when the blueprint is applied.
+# Database: Neon Postgres. Images: Cloudflare R2. Values marked sync: false are entered in Render when the blueprint is applied.
 services:
   - type: web
     name: devliqly-cms
@@ -53,12 +53,17 @@ services:
       - key: DATABASE_POOL_MAX
         value: "5"
 
-      - key: CLOUDINARY_NAME
+      # Cloudflare R2 bucket for uploaded images
+      - key: R2_ACCOUNT_ID
         sync: false
-      - key: CLOUDINARY_KEY
+      - key: R2_BUCKET
+        value: devliqly-blog
+      - key: R2_ACCESS_KEY_ID
         sync: false
-      - key: CLOUDINARY_SECRET
+      - key: R2_SECRET_ACCESS_KEY
         sync: false
+      - key: R2_PUBLIC_URL
+        value: https://media.devliqly.in
 
       # Vercel Deploy Hook URL: rebuilds www.devliqly.in when posts change
       - key: SITE_DEPLOY_HOOK

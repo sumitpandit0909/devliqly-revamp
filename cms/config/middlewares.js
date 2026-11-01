@@ -2,15 +2,15 @@ module.exports = ({ env }) => [
   'strapi::logger',
   'strapi::errors',
   {
-    // Let the admin preview images stored on Cloudinary
+    // Let the admin preview images stored in R2
     name: 'strapi::security',
     config: {
       contentSecurityPolicy: {
         useDefaults: true,
         directives: {
           'connect-src': ["'self'", 'https:'],
-          'img-src': ["'self'", 'data:', 'blob:', 'market-assets.strapi.io', 'res.cloudinary.com'],
-          'media-src': ["'self'", 'data:', 'blob:', 'market-assets.strapi.io', 'res.cloudinary.com'],
+          'img-src': ["'self'", 'data:', 'blob:', 'market-assets.strapi.io', env('R2_PUBLIC_URL', '')].filter(Boolean),
+          'media-src': ["'self'", 'data:', 'blob:', 'market-assets.strapi.io', env('R2_PUBLIC_URL', '')].filter(Boolean),
           upgradeInsecureRequests: null,
         },
       },

@@ -32,18 +32,23 @@ module.exports = ({ env }) => ({
   },
   upload: {
     config: {
-      // Cloudinary in production (hosts have no permanent disk); local public/uploads when it isn't configured
-      ...(env('CLOUDINARY_NAME') && {
-        provider: 'cloudinary',
+      // Cloudflare R2 in production (hosts have no permanent disk); local public/uploads when it isn't configured
+      ...(env('R2_BUCKET') && {
+        provider: 'aws-s3',
         providerOptions: {
-          cloud_name: env('CLOUDINARY_NAME'),
-          api_key: env('CLOUDINARY_KEY'),
-          api_secret: env('CLOUDINARY_SECRET'),
-        },
-        actionOptions: {
-          upload: { folder: 'devliqly-blog' },
-          uploadStream: { folder: 'devliqly-blog' },
-          delete: {},
+          // Public address of the bucket, e.g. https://media.devliqly.in
+          baseUrl: env('R2_PUBLIC_URL'),
+          rootPath: 'blog',
+          s3Options: {
+            endpoint: `https://${env('R2_ACCOUNT_ID')}.r2.cloudflarestorage.com`,
+            region: 'auto',
+            credentials: {
+              accessKeyId: env('R2_ACCESS_KEY_ID'),
+              secretAccessKey: env('R2_SECRET_ACCESS_KEY'),
+            },
+            // R2 has no per-object ACLs; access is set on the bucket
+            params: { Bucket: env('R2_BUCKET'), ACL: undefined },
+          },
         },
       }),
       security: {

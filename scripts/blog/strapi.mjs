@@ -1,10 +1,11 @@
 // Blog CLI for the CMS at blog.devliqly.in, used by the daily writing routine.
 //   node scripts/blog/strapi.mjs list            every article (drafts and published), newest first
 //   node scripts/blog/strapi.mjs draft <file.md> save a Markdown article with a generated cover as a draft
+//   node scripts/blog/strapi.mjs cover <file.md> <out.png>  only render the cover, e.g. to replace one by hand
 // Needs STRAPI_TOKEN (a Strapi API token: Article find/findOne/create, Upload upload).
 // STRAPI_URL defaults to https://blog.devliqly.in.
 import fs from 'node:fs'
-import { coverPng } from './cover.mjs'
+import { MOTIFS, coverPng } from './cover.mjs'
 import { frontMatter, toBlocks, wordCount } from './markdown.mjs'
 
 const STRAPI_URL = (process.env.STRAPI_URL || 'https://blog.devliqly.in').replace(/\/+$/, '')
@@ -54,13 +55,26 @@ async function list() {
   }
 }
 
-async function draft(file) {
+function readArticle(file) {
   if (!file || !fs.existsSync(file)) fail('Pass the path of a Markdown file')
   const { meta, body } = frontMatter(fs.readFileSync(file, 'utf8'))
-
   for (const key of ['title', 'excerpt', 'category']) if (!meta[key]) fail(`Front matter is missing "${key}"`)
   for (const [key, max] of Object.entries(LIMITS)) if (meta[key] && meta[key].length > max) fail(`"${key}" is ${meta[key].length} characters; the limit is ${max}`)
   if (!CATEGORIES.includes(meta.category)) fail(`"category" must be one of: ${CATEGORIES.join(', ')}`)
+  if (meta.coverMotif && !MOTIFS[meta.coverMotif]) fail(`"coverMotif" must be one of: ${Object.keys(MOTIFS).join(', ')}`)
+  return { meta, body }
+}
+
+const coverFor = (meta) => coverPng({ title: meta.title, category: meta.category, motif: meta.coverMotif })
+
+function cover(file, out) {
+  if (!out) fail('Pass the output PNG path')
+  fs.writeFileSync(out, coverFor(readArticle(file).meta))
+  console.log(`Wrote ${out}`)
+}
+
+async function draft(file) {
+  const { meta, body } = readArticle(file)
   const content = toBlocks(body)
   const words = wordCount(content)
   if (words < MIN_WORDS) fail(`The article has ${words} words; write at least ${MIN_WORDS}`)
@@ -74,7 +88,7 @@ async function draft(file) {
   for (let n = 2; taken.has(slug); n++) slug = `${base}-${n}`
 
   const form = new FormData()
-  form.append('files', new Blob([coverPng(slug)], { type: 'image/png' }), `${slug}.png`)
+  form.append('files', new Blob([coverFor(meta)], { type: 'image/png' }), `${slug}.png`)
   form.append('fileInfo', JSON.stringify({ name: `${slug}.png`, alternativeText: meta.coverAlt || `Cover image for "${meta.title}"` }))
   const [cover] = await api('/api/upload', { method: 'POST', body: form })
 
@@ -102,9 +116,10 @@ async function draft(file) {
 }
 
 async function main() {
-  const [command, arg] = process.argv.slice(2)
+  const [command, arg, out] = process.argv.slice(2)
+  if (command === 'cover') return cover(arg, out)
   if (!TOKEN) fail('Set STRAPI_TOKEN to a Strapi API token')
-  if (!['list', 'draft'].includes(command)) fail('Usage: node scripts/blog/strapi.mjs list | draft <file.md>')
+  if (!['list', 'draft'].includes(command)) fail('Usage: node scripts/blog/strapi.mjs list | draft <file.md> | cover <file.md> <out.png>')
   await wake()
   await (command === 'list' ? list() : draft(arg))
 }

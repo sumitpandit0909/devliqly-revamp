@@ -18,6 +18,9 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
+    "@expo-google-fonts/inter": "^0.4.2",
+    "@expo-google-fonts/syne": "^0.4.2",
+    "@resvg/resvg-js": "^2.6.2",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",

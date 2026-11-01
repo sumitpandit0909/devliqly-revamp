@@ -72,14 +72,24 @@ const Teaser = ({ a }) => (
   </article>
 )
 
+// The CMS sleeps when idle on Render's free tier, so give it time to wake before giving up
+const ATTEMPTS = 5
+const RETRY_DELAY_MS = 15000
+
 async function loadArticles() {
   if (!BLOG_ENABLED) return null
-  try {
-    return await fetchAllArticles()
-  } catch (err) {
-    // A CMS outage should not take the whole site down: ship it without pre-rendered posts
-    console.warn(`prerender: could not load posts from ${STRAPI_URL} (${err.message}); skipping blog pages`)
-    return null
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await fetchAllArticles()
+    } catch (err) {
+      if (attempt === ATTEMPTS) {
+        // A CMS outage should not take the whole site down: ship it without pre-rendered posts
+        console.warn(`prerender: could not load posts from ${STRAPI_URL} (${err.message}); skipping blog pages`)
+        return null
+      }
+      console.warn(`prerender: CMS not ready (${err.message}), retrying in ${RETRY_DELAY_MS / 1000}s`)
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS))
+    }
   }
 }
 
@@ -157,8 +167,6 @@ async function main() {
       ), { kind: 'post', key: a.slug, article: a, related })
     }
 
-    // Posts published after this build are served this shell until the CMS triggers the next deploy
-    write('/blog/post-shell', page({ title: 'Blog | DEVLIQLY', description: blog.description, rss: true }, <Shell><p>Loading post…</p></Shell>))
 
     const rss = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
@@ -180,6 +188,14 @@ ${articles.map((a) => `    <item>
 </rss>
 `
     fs.writeFileSync(path.join(DIST, 'blog', 'rss.xml'), rss)
+  }
+
+  if (BLOG_ENABLED) {
+    const blog = blogMeta(articles ?? [])
+    // Without posts (CMS down during the build) the blog page loads them in the browser instead
+    if (!articles) write('/blog', page({ ...blog, rss: false }, <Shell><h1>Blog</h1><p>{blog.description}</p></Shell>))
+    // Posts published after this build are served this shell until the CMS triggers the next deploy
+    write('/blog/post-shell', page({ title: 'Blog | DEVLIQLY', description: blog.description, rss: Boolean(articles) }, <Shell><p>Loading post…</p></Shell>))
   }
 
   write('/404', page(notFoundMeta(), <Shell><h1>Page not found</h1><p>The page you’re looking for doesn’t exist or has moved.</p></Shell>))

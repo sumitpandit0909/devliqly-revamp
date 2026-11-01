@@ -1,7 +1,21 @@
 module.exports = ({ env }) => [
   'strapi::logger',
   'strapi::errors',
-  'strapi::security',
+  {
+    // Let the admin preview images stored on Cloudinary
+    name: 'strapi::security',
+    config: {
+      contentSecurityPolicy: {
+        useDefaults: true,
+        directives: {
+          'connect-src': ["'self'", 'https:'],
+          'img-src': ["'self'", 'data:', 'blob:', 'market-assets.strapi.io', 'res.cloudinary.com'],
+          'media-src': ["'self'", 'data:', 'blob:', 'market-assets.strapi.io', 'res.cloudinary.com'],
+          upgradeInsecureRequests: null,
+        },
+      },
+    },
+  },
   {
     // Only the website (and local dev) may call the API from a browser
     name: 'strapi::cors',

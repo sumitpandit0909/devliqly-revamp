@@ -21,7 +21,7 @@ const deniedTypes = [
   'application/x-mach-binary',
 ];
 
-module.exports = () => ({
+module.exports = ({ env }) => ({
   'users-permissions': {
     config: {
       jwtManagement: 'refresh',
@@ -32,6 +32,20 @@ module.exports = () => ({
   },
   upload: {
     config: {
+      // Cloudinary in production (hosts have no permanent disk); local public/uploads when it isn't configured
+      ...(env('CLOUDINARY_NAME') && {
+        provider: 'cloudinary',
+        providerOptions: {
+          cloud_name: env('CLOUDINARY_NAME'),
+          api_key: env('CLOUDINARY_KEY'),
+          api_secret: env('CLOUDINARY_SECRET'),
+        },
+        actionOptions: {
+          upload: { folder: 'devliqly-blog' },
+          uploadStream: { folder: 'devliqly-blog' },
+          delete: {},
+        },
+      }),
       security: {
         allowedTypes: allowedMediaTypes,
         deniedTypes,

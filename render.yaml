@@ -68,3 +68,29 @@ services:
       # Vercel Deploy Hook URL: rebuilds www.devliqly.in when posts change
       - key: SITE_DEPLOY_HOOK
         sync: false
+
+  # Devliqly Platform backend (FastAPI in platform/backend/), served at https://platform.devliqly.in
+  - type: web
+    name: devliqly-platform
+    runtime: python
+    plan: starter # A free instance sleeps, which would delay WhatsApp webhooks
+    region: singapore
+    rootDir: platform/backend
+    buildCommand: pip install uv && uv sync --frozen --no-dev
+    startCommand: .venv/bin/alembic upgrade head && .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips '*'
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      - key: ENVIRONMENT
+        value: production
+      - key: PUBLIC_BASE_URL
+        value: https://platform.devliqly.in
+      - key: JWT_SECRET
+        generateValue: true
+      # Neon direct connection strings: see platform/README.md
+      - key: DATABASE_URL
+        sync: false
+      - key: MIGRATION_DATABASE_URL
+        sync: false

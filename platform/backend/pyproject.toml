@@ -1,0 +1,47 @@
+[project]
+name = "devliqly-platform-backend"
+version = "0.1.0"
+description = "Backend for the Devliqly platform, the CRM and Expo Agent at platform.devliqly.in"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "alembic>=1.20",
+    "argon2-cffi>=25.1",
+    "asyncpg>=0.32",
+    "fastapi>=0.162,<1",
+    "phonenumbers>=8.13",
+    "pydantic-settings>=2.16",
+    "pydantic[email]>=2.8",
+    "pyjwt>=2.15",
+    "sqlalchemy[asyncio]>=2.1,<2.2",
+    "uvicorn[standard]>=0.30",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "ASYNC", "S"]
+ignore = ["B008"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "S105", "S106"]
+"migrations/*" = ["S608", "E501"]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.27",
+    "pytest>=8",
+    "pytest-asyncio>=1.4",
+    "ruff>=0.6",
+]

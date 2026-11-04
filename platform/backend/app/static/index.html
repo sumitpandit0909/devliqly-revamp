@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Devliqly Platform</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main class="card">
+      <p class="brand">DEVLIQLY <span>Platform</span></p>
+
+      <form id="login" hidden>
+        <h1>Log in</h1>
+        <label>Email <input name="email" type="email" autocomplete="username" required /></label>
+        <label>Password <input name="password" type="password" autocomplete="current-password" required /></label>
+        <button type="submit">Log in</button>
+      </form>
+
+      <form id="setup" hidden>
+        <h1>Choose your password</h1>
+        <label>
+          New password (at least 10 characters)
+          <input name="password" type="password" autocomplete="new-password" minlength="10" required />
+        </label>
+        <button type="submit">Save password</button>
+      </form>
+
+      <section id="home" hidden>
+        <h1 id="greeting"></h1>
+        <p class="muted" id="identity"></p>
+        <ul id="organizations"></ul>
+        <button type="button" id="logout" class="ghost">Log out</button>
+      </section>
+
+      <p id="message" role="alert" hidden></p>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>

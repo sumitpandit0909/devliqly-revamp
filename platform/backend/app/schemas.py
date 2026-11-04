@@ -1,5 +1,5 @@
 import uuid
-from datetime import date
+from datetime import date, datetime
 from typing import Annotated, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, StringConstraints, field_validator, model_validator
@@ -142,3 +142,41 @@ class ExpoEventOut(BaseModel):
     starts_on: date | None
     ends_on: date | None
     is_active: bool
+
+
+class ConversationOut(BaseModel):
+    id: uuid.UUID
+    rep_user_id: uuid.UUID
+    rep_name: str
+    rep_phone: str | None
+    last_inbound_at: datetime | None
+
+
+class ConversationMessageOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    direction: str
+    kind: str
+    body: str | None
+    status: str
+    error: str | None
+    created_at: datetime
+
+
+class JobSummary(BaseModel):
+    pending: int = 0
+    running: int = 0
+    done: int = 0
+    dead: int = 0
+
+
+class DeadJobOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    seq: int
+    kind: str
+    attempts: int
+    last_error: str | None
+    created_at: datetime
+    finished_at: datetime | None

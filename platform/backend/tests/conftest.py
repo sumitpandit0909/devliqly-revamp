@@ -14,6 +14,12 @@ os.environ.update(
     MIGRATION_DATABASE_URL=OWNER_URL,
     JWT_SECRET="test-secret-test-secret-test-secret-test",
     PUBLIC_BASE_URL="http://test",
+    WHATSAPP_LINE_ID="100200300",
+    WHATSAPP_ACCESS_TOKEN="test-token",
+    WHATSAPP_APP_SECRET="test-app-secret",
+    WHATSAPP_VERIFY_TOKEN="test-verify-token",
+    WHATSAPP_DRY_RUN="false",
+    WORKER_ENABLED="false",
 )
 
 import httpx  # noqa: E402
@@ -65,7 +71,7 @@ def pytest_sessionstart(session) -> None:
 async def clean_tables():
     engine = owner_engine()
     async with engine.begin() as connection:
-        await connection.execute(text("TRUNCATE organizations, users CASCADE"))
+        await connection.execute(text("TRUNCATE organizations, users, webhook_inbox, job_queue CASCADE"))
     await engine.dispose()
 
 

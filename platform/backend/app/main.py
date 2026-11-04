@@ -1,3 +1,6 @@
+import asyncio
+import contextlib
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -8,7 +11,8 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
 from app.db import get_engine
-from app.routers import auth, expo_events, health, members, operator
+from app.queue import run_worker
+from app.routers import auth, conversations, expo_events, health, members, meta_webhook, operator
 
 STATIC_DIR = Path(__file__).parent / "static"
 
@@ -24,11 +28,18 @@ SECURITY_HEADERS = {
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    worker = asyncio.create_task(run_worker()) if get_settings().worker_enabled else None
     yield
+    if worker:
+        worker.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await worker
     await get_engine().dispose()
 
 
 def create_app() -> FastAPI:
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    logging.getLogger("httpx").setLevel(logging.WARNING)  # Its request logs would include message URLs
     settings = get_settings()
     production = settings.is_production
     app = FastAPI(
@@ -67,6 +78,8 @@ def create_app() -> FastAPI:
     app.include_router(operator.router)
     app.include_router(members.router)
     app.include_router(expo_events.router)
+    app.include_router(conversations.router)
+    app.include_router(meta_webhook.router)
     app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="site")
     return app
 

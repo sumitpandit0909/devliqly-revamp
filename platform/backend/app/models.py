@@ -3,18 +3,23 @@ from datetime import date, datetime
 from enum import StrEnum
 
 from sqlalchemy import (
+    BigInteger,
     Boolean,
     CheckConstraint,
     Date,
     DateTime,
     ForeignKey,
+    Identity,
+    Index,
     Integer,
     MetaData,
     String,
+    Text,
     UniqueConstraint,
     func,
+    text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -151,3 +156,93 @@ class PasswordSetupToken(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = _created_at()
+
+
+class WebhookInbox(Base):
+    """Every webhook item, stored once. The unique event_key is what makes Meta's retries harmless."""
+
+    __tablename__ = "webhook_inbox"
+
+    id: Mapped[uuid.UUID] = _pk()
+    event_key: Mapped[str] = mapped_column(String(300), nullable=False, unique=True)
+    kind: Mapped[str] = mapped_column(String(20), nullable=False)
+    payload: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    received_at: Mapped[datetime] = _created_at()
+
+
+class Job(Base):
+    """Durable background work. Saved in the same transaction as the data that caused it."""
+
+    __tablename__ = "job_queue"
+    __table_args__ = (
+        CheckConstraint("status IN ('pending', 'running', 'done', 'dead')", name="known_status"),
+        Index("ix_job_queue_due", "run_after", postgresql_where=text("status = 'pending'")),
+        Index("ix_job_queue_lease", "locked_until", postgresql_where=text("status = 'running'")),
+        Index("ix_job_queue_lock_key", "lock_key", "seq", postgresql_where=text("status IN ('pending', 'running')")),
+    )
+
+    seq: Mapped[int] = mapped_column(BigInteger, Identity(), primary_key=True)
+    kind: Mapped[str] = mapped_column(String(50), nullable=False)
+    payload: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    # Jobs sharing a lock_key run strictly one at a time, in order
+    lock_key: Mapped[str | None] = mapped_column(String(100))
+    # Enqueuing the same dedupe_key twice does nothing
+    dedupe_key: Mapped[str | None] = mapped_column(String(200), unique=True)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, server_default="pending")
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+    max_attempts: Mapped[int] = mapped_column(Integer, nullable=False, server_default="6")
+    run_after: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_error: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = _created_at()
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class RepConversation(Base):
+    """A rep's chat with the Expo Agent. The state fields drive what their next message means (later phases)."""
+
+    __tablename__ = "rep_conversations"
+    __table_args__ = (UniqueConstraint("organization_id", "rep_user_id", name="uq_rep_conversations_organization_rep"),)
+
+    id: Mapped[uuid.UUID] = _pk()
+    organization_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False
+    )
+    rep_user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    state: Mapped[str] = mapped_column(String(40), nullable=False, server_default="idle")
+    state_data: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default="{}")
+    state_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_inbound_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = _created_at()
+    updated_at: Mapped[datetime] = _updated_at()
+
+
+class ConversationMessage(Base):
+    __tablename__ = "conversation_messages"
+    __table_args__ = (
+        CheckConstraint("direction IN ('in', 'out')", name="known_direction"),
+        CheckConstraint("status IN ('received', 'queued', 'sent', 'delivered', 'read', 'failed')", name="known_status"),
+        Index("ix_conversation_messages_conversation", "conversation_id", "created_at"),
+    )
+
+    id: Mapped[uuid.UUID] = _pk()
+    organization_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    conversation_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("rep_conversations.id", ondelete="CASCADE"), nullable=False
+    )
+    direction: Mapped[str] = mapped_column(String(3), nullable=False)
+    kind: Mapped[str] = mapped_column(String(20), nullable=False)
+    body: Mapped[str | None] = mapped_column(Text)
+    # Meta's ID for this message; unique, so an inbound message can't be saved twice
+    provider_message_id: Mapped[str | None] = mapped_column(String(200), unique=True)
+    # The inbound message this one answers, shown as a quoted reply in WhatsApp
+    quotes_provider_id: Mapped[str | None] = mapped_column(String(200))
+    details: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default="{}")
+    status: Mapped[str] = mapped_column(String(20), nullable=False)
+    error: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = _created_at()
+    updated_at: Mapped[datetime] = _updated_at()

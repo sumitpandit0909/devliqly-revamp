@@ -94,3 +94,12 @@ services:
         sync: false
       - key: MIGRATION_DATABASE_URL
         sync: false
+      # From the Meta app: see platform/README.md
+      - key: WHATSAPP_LINE_ID
+        sync: false
+      - key: WHATSAPP_ACCESS_TOKEN
+        sync: false
+      - key: WHATSAPP_APP_SECRET
+        sync: false
+      - key: WHATSAPP_VERIFY_TOKEN
+        generateValue: true

@@ -45,6 +45,19 @@ class Settings(BaseSettings):
     lockout_minutes: int = 15
 
     default_phone_region: str = "IN"
+
+    # The WhatsApp Business number, from the Meta app
+    whatsapp_line_id: str = ""
+    whatsapp_access_token: str = ""
+    whatsapp_app_secret: str = ""
+    # Any random string; entered in Meta when connecting the webhook
+    whatsapp_verify_token: str = ""
+    graph_api_version: str = "v23.0"
+    # Development only: pretend to send, without calling Meta
+    whatsapp_dry_run: bool = False
+
+    worker_enabled: bool = True
+    worker_concurrency: int = 4
     cors_origins: Annotated[list[str], NoDecode] = []
 
     @field_validator("cors_origins", mode="before")
@@ -61,6 +74,8 @@ class Settings(BaseSettings):
                 raise ValueError("Set JWT_SECRET to a long random value in production")
             if not self.public_base_url.startswith("https://"):
                 raise ValueError("PUBLIC_BASE_URL must use https in production")
+            if self.whatsapp_dry_run:
+                raise ValueError("WHATSAPP_DRY_RUN can't be on in production")
         return self
 
     @property

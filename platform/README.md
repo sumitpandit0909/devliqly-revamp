@@ -11,6 +11,8 @@ app/main.py        app setup and security headers
 app/db.py          sessions and the per-transaction security scope
 app/models.py      tables
 app/deps.py        current user and organization for a request
+app/queue.py       durable background jobs, stored in Postgres
+app/whatsapp/      reading Meta's webhooks, sending messages, background handlers
 app/routers/       API endpoints
 app/static/        minimal login and first-password pages
 migrations/        schema history, including row-level security
@@ -57,6 +59,31 @@ uv run pytest
 uv run ruff check .
 ```
 
+### WhatsApp flow
+
+```
+Meta → POST /webhooks/meta → verify signature → save once (unique event key) + queue a job, in one transaction → 200
+                                                                                  ↓
+                                        worker (in the same process): handle in order per rep, retry with backoff
+```
+
+- **Retries from Meta are harmless:** each message or receipt has a unique key, so repeats do nothing.
+- **Crashes lose nothing:** a job and the data that caused it are saved together, and a dead worker's job restarts when its 5-minute lease ends.
+- **Staff can see failures:** `GET /api/operator/jobs/summary`, `GET /api/operator/jobs/dead`, and `POST /api/operator/jobs/{seq}/retry`.
+- **One known limit:** if the server dies after Meta accepts a message but before saving that, the message is sent again on retry. Meta offers no way to prevent this.
+
+### Try it without Meta
+
+Copy `.env.example` to `.env`, which turns on `WHATSAPP_DRY_RUN` so nothing is really sent. Add a rep with `POST /api/org/members` (see http://localhost:8000/docs), then, with the server running:
+
+```bash
+uv run python scripts/simulate_whatsapp.py text --sender +919876543210 --body "Hello"
+```
+
+```bash
+uv run python scripts/simulate_whatsapp.py text --sender +919876543210 --message-id wamid.same --times 3
+```
+
 ## Hosting
 
 Render runs the backend (`devliqly-platform` in `/render.yaml`). It needs the paid Starter plan: a free instance sleeps, which would delay WhatsApp webhooks. Neon holds the data, in a project separate from the blog, in the Singapore region to sit next to Render.
@@ -92,6 +119,10 @@ Render runs the backend (`devliqly-platform` in `/render.yaml`). It needs the pa
    | `JWT_SECRET` | a long random value |
    | `MIGRATION_DATABASE_URL` | Neon's direct connection string for the owner role |
    | `DATABASE_URL` | the same direct string, with `platform_app` and its password as the user and password |
+   | `WHATSAPP_LINE_ID` | the number's Phone Number ID, from the Meta app |
+   | `WHATSAPP_ACCESS_TOKEN` | a permanent System User token from Meta |
+   | `WHATSAPP_APP_SECRET` | the Meta app's App Secret |
+   | `WHATSAPP_VERIFY_TOKEN` | any long random value |
 
    Use Neon's direct host (without `-pooler`) for both.
 
@@ -103,4 +134,6 @@ Render runs the backend (`devliqly-platform` in `/render.yaml`). It needs the pa
    .venv/bin/python -m app.cli create-operator --name "Your Name" --email you@devliqly.in
    ```
 
-**Check:** https://platform.devliqly.in/readyz returns `{"status":"ready"}`, and you can log in.
+5. **WhatsApp:** in the Meta app, set the webhook URL to `https://platform.devliqly.in/webhooks/meta` with your `WHATSAPP_VERIFY_TOKEN`, and subscribe to `messages`.
+
+**Check:** https://platform.devliqly.in/readyz returns `{"status":"ready"}`, you can log in, and a WhatsApp message from a registered rep gets a reply.

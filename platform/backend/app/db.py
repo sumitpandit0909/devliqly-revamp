@@ -48,6 +48,7 @@ async def set_scope(
     org_id: uuid.UUID | None = None,
     operator: bool = False,
     auth_lookup: bool = False,
+    system: bool = False,
 ) -> None:
     """Tell row-level security who this transaction acts for.
 
@@ -63,6 +64,9 @@ async def set_scope(
         values["app.operator"] = "on"
     if auth_lookup:
         values["app.auth_lookup"] = "on"
+    if system:
+        # The webhook and background worker act across customers. Never set this for a logged-in request.
+        values["app.system"] = "on"
     for name, value in values.items():
         await session.execute(text("SELECT set_config(:name, :value, true)"), {"name": name, "value": value})
 

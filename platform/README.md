@@ -1,6 +1,28 @@
 # Devliqly Platform
 
-The CRM and Expo Agent, served at https://platform.devliqly.in. Separate from the marketing site and the blog CMS.
+The CRM and Expo Agent, which will be served at https://platform.devliqly.in. Separate from the marketing site and the blog CMS.
+
+## Status
+
+Not live yet. So far it has only run locally, with simulated WhatsApp messages and sends. It hasn't been tested against real Meta, Neon or Render.
+
+| Phase | Scope | State |
+|---|---|---|
+| 0 | Accounts, login, customer separation | Done |
+| 1 | WhatsApp inbox and durable job queue | Done; replies are a placeholder until phase 2 |
+| 2 | Card capture: read a photo and save the company, contact and lead | Next |
+| 3 | Rep actions: notes, corrections, voice notes | Planned |
+| 4 | CRM screens | Planned |
+| 5 | Follow-ups | Planned |
+| 6 | Launch | Planned |
+
+To do before real customers use it:
+
+- Delete old webhook and job records automatically. They hold message text and phone numbers.
+- Add rate limiting by IP address.
+- Confirm the Graph API version (`GRAPH_API_VERSION`, default `v23.0`) is still current.
+
+For the pilot, a phone number can belong to only one customer.
 
 ## Backend (`backend/`)
 

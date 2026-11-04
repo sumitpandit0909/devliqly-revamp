@@ -54,3 +54,7 @@ The CMS runs on Render's free tier from the `render.yaml` blueprint, with its da
 5. Open https://blog.devliqly.in/admin, create the admin account and write the post.
 6. **Rebuild on publish:** in Vercel, Project → Settings → Git → Deploy Hooks, create a hook for `main`, then paste its URL as `SITE_DEPLOY_HOOK` in Render.
 7. **Turn the blog on:** in Vercel add `VITE_STRAPI_URL=https://blog.devliqly.in` (Production) and redeploy.
+
+## Platform (CRM and Expo Agent)
+
+`platform/` holds a separate Python backend for the CRM and the WhatsApp Expo Agent, planned for https://platform.devliqly.in. It isn't live yet and isn't part of the marketing site's build. See [platform/README.md](platform/README.md) for its status, how to run it and how to host it.

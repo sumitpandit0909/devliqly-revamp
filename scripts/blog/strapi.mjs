@@ -1,6 +1,7 @@
 // Blog CLI for the CMS at blog.devliqly.in, used by the daily writing routine.
 //   node scripts/blog/strapi.mjs list            every article (drafts and published), newest first
-//   node scripts/blog/strapi.mjs draft <file.md> save a Markdown article with a generated cover as a draft
+//   node scripts/blog/strapi.mjs publish <file.md> publish a Markdown article, featured, with a generated cover
+//   node scripts/blog/strapi.mjs draft <file.md>   the same, but saved as a draft for review instead
 //   node scripts/blog/strapi.mjs cover <file.md> <out.png>  only render the cover, e.g. to replace one by hand
 // Needs STRAPI_TOKEN (a Strapi API token: Article find/findOne/create, Upload upload).
 // STRAPI_URL defaults to https://blog.devliqly.in.
@@ -9,6 +10,7 @@ import { MOTIFS, coverPng } from './cover.mjs'
 import { frontMatter, toBlocks, wordCount } from './markdown.mjs'
 
 const STRAPI_URL = (process.env.STRAPI_URL || 'https://blog.devliqly.in').replace(/\/+$/, '')
+const SITE_URL = 'https://www.devliqly.in'
 const TOKEN = process.env.STRAPI_TOKEN
 const CATEGORIES = ['AI Agents', 'Chatbots', 'Voice', 'Automation', 'Company']
 const LIMITS = { title: 120, excerpt: 280, seoTitle: 70, seoDescription: 170 }
@@ -73,7 +75,7 @@ function cover(file, out) {
   console.log(`Wrote ${out}`)
 }
 
-async function draft(file) {
+async function save(file, { publish }) {
   const { meta, body } = readArticle(file)
   const content = toBlocks(body)
   const words = wordCount(content)
@@ -93,7 +95,7 @@ async function draft(file) {
   const [cover] = await api('/api/upload', { method: 'POST', body: form })
 
   // Strapi 5 publishes new entries unless the request asks for a draft
-  const { data } = await api('/api/articles?status=draft', {
+  const { data } = await api(publish ? '/api/articles' : '/api/articles?status=draft', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -106,22 +108,36 @@ async function draft(file) {
         seoTitle: meta.seoTitle || undefined,
         seoDescription: meta.seoDescription || undefined,
         cover: cover.id,
+        // The newest featured article leads the blog page
+        featured: publish,
         content,
       },
     }),
   })
 
-  console.log(`Saved draft "${data.title}" (${words} words)`)
-  console.log(`Review and publish: ${STRAPI_URL}/admin/content-manager/collection-types/api::article.article/${data.documentId}`)
+  const edit = `${STRAPI_URL}/admin/content-manager/collection-types/api::article.article/${data.documentId}`
+  if (!publish) {
+    console.log(`Saved draft "${data.title}" (${words} words)`)
+    console.log(`Review and publish: ${edit}`)
+    return
+  }
+  // Check what the public sees, rather than trusting the response
+  const live = await api(`/api/articles?filters[slug][$eq]=${encodeURIComponent(slug)}&fields[0]=featured`)
+  if (!live.data.length) fail(`Saved "${data.title}" but it isn't published; check it in the CMS: ${edit}`)
+  console.log(`Published "${data.title}" (${words} words), featured: ${live.data[0].featured}`)
+  console.log(`The site rebuilds in a few minutes; it will be at ${SITE_URL}/blog/${slug}`)
+  console.log(`Edit in the CMS: ${edit}`)
 }
 
 async function main() {
   const [command, arg, out] = process.argv.slice(2)
   if (command === 'cover') return cover(arg, out)
   if (!TOKEN) fail('Set STRAPI_TOKEN to a Strapi API token')
-  if (!['list', 'draft'].includes(command)) fail('Usage: node scripts/blog/strapi.mjs list | draft <file.md> | cover <file.md> <out.png>')
+  if (!['list', 'draft', 'publish'].includes(command)) {
+    fail('Usage: node scripts/blog/strapi.mjs list | publish <file.md> | draft <file.md> | cover <file.md> <out.png>')
+  }
   await wake()
-  await (command === 'list' ? list() : draft(arg))
+  await (command === 'list' ? list() : save(arg, { publish: command === 'publish' }))
 }
 
 main().catch((err) => {

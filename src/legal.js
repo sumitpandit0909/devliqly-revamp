@@ -76,7 +76,7 @@ export const LEGAL = {
             'Google Fonts, which serves the typefaces used on the site.',
             'Email and messaging providers we use to correspond with you.',
             'Meta Platforms (WhatsApp Business Platform), which carries WhatsApp messages.',
-            'Google (Gemini) and Anthropic (Claude), which read card photos and voice notes and help interpret messages.',
+            'OpenRouter, Google (Gemini), DeepSeek and Anthropic (Claude), which read card photos and voice notes and help interpret messages. OpenRouter passes requests to the model provider we choose.',
             'Render and Neon, which host the Platform’s application and database in Singapore.',
             'Cloudflare, which stores card photos in private storage and serves website images.',
             'Resend, which delivers emails sent by the Platform.',

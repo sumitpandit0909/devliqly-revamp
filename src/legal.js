@@ -5,13 +5,14 @@ export const LEGAL = {
   privacy: {
     path: '/privacy',
     title: 'Privacy Policy',
-    updated: '31 October 2026',
-    intro: `This policy explains what personal data Devliqly ("we", "us") collects through devliqly.in, why we collect it and how you can control it. It is written to meet India’s Digital Personal Data Protection Act, 2023 and the Information Technology Act, 2000.`,
+    updated: '11 November 2026',
+    intro: `This policy explains what personal data Devliqly ("we", "us") collects through devliqly.in and through the Devliqly Platform, including our WhatsApp agent, why we collect it and how you can control it. It is written to meet India’s Digital Personal Data Protection Act, 2023 and the Information Technology Act, 2000.`,
     sections: [
       {
         h: 'Who we are',
         body: [
-          'Devliqly is a technology studio based in India that designs and builds AI agents, chatbots and automation for businesses. For personal data you share with us through this website, Devliqly is the data fiduciary (controller).',
+          'Devliqly is a technology studio based in India that designs and builds AI agents, chatbots and automation for businesses. We also run the Devliqly Platform at platform.devliqly.in, a CRM with a WhatsApp agent that helps sales teams capture leads at events.',
+          'For personal data you share with us through this website, and for the account and billing details of businesses that use our services, Devliqly is the data fiduciary (controller). For data a business puts into the Devliqly Platform about its own staff and prospects, that business is the data fiduciary and we process the data on its behalf.',
         ],
       },
       {
@@ -23,7 +24,34 @@ export const LEGAL = {
             'Email, phone and WhatsApp: whatever you share with us when you contact us directly.',
             'Technical data: our hosting provider processes standard server logs such as IP address, browser type and pages requested, for security and reliability.',
           ],
-          'We do not use advertising or analytics cookies, and we do not knowingly collect data from children under 18.',
+          'We do not use advertising or analytics cookies, and we do not knowingly collect data from children under 18. The Devliqly Platform uses a login cookie, which is needed to keep you signed in.',
+        ],
+      },
+      {
+        h: 'Devliqly Platform and WhatsApp agent',
+        body: [
+          'Businesses use the Devliqly Platform so their sales representatives can send business cards, notes and voice notes to our WhatsApp agent, which saves them as leads in the business’s CRM. When a business uses the Platform, we process:',
+          [
+            'Staff accounts: name, email address, WhatsApp number, role, company and login sessions.',
+            'WhatsApp messages sent to the agent: the sender’s number and profile name, message text, photos, voice notes and their transcripts, timestamps and delivery status.',
+            'Details of people the business meets (prospects): whatever appears on a business card or in a representative’s note, such as name, job title, company, phone number, email address, website and address, along with the card photo, notes about the conversation, follow-up history and marketing preferences.',
+            'Usage records: activity logs, plan usage and the estimated cost of processing.',
+          ],
+          'We use this data to read cards and voice notes, create and update leads, reply to representatives, show the business its CRM, send the follow-ups the business has switched on, and keep the service secure. We do not sell this data and we do not use it to train our own AI models.',
+          'Follow-up messages are sent on behalf of the business. WhatsApp follow-ups only go to people recorded as having agreed to receive them; a scanned business card does not count as agreement. Replying STOP on WhatsApp, or using the unsubscribe link in an email, stops further follow-ups.',
+        ],
+      },
+      {
+        h: 'Data we receive from Meta and WhatsApp',
+        body: [
+          'The Devliqly Platform uses the WhatsApp Business Platform, a service of Meta Platforms. When a business connects its WhatsApp number to the Platform, including by signing in through Facebook, we receive and store:',
+          [
+            'Identifiers for its business portfolio, WhatsApp Business account and phone number, and its business and display names.',
+            'An access token that lets us send and receive messages for that number.',
+            'Messages sent to and from that number, delivery status and message template details.',
+            'If the business keeps using the WhatsApp Business app on the same number and chooses to share it: its WhatsApp contacts, up to the last six months of one-to-one chat history, and new messages it sends from the app. Group chats are not shared with us.',
+          ],
+          'We use this data only to provide the Platform to that business: sending and receiving its messages, showing them in its CRM and managing its templates. We do not receive Facebook passwords, and we do not use this data for advertising, sell it or share it except as described in this policy. WhatsApp and Meta also process messages under their own terms and privacy policies.',
         ],
       },
       {
@@ -33,9 +61,9 @@ export const LEGAL = {
             'To reply to your enquiry and schedule the demo you requested.',
             'To prepare proposals and deliver services you sign up for.',
             'To send you service-related updates about an engagement with us.',
-            'To keep the website secure and prevent spam or abuse.',
+            'To keep the website and the Platform secure and prevent spam or abuse.',
           ],
-          'We process this data on the basis of your consent when you submit a form or contact us, and for legitimate uses permitted by law. We never sell your personal data.',
+          'We process this data on the basis of your consent when you submit a form or contact us, on the instructions of the business using the Platform, and for legitimate uses permitted by law. We never sell your personal data.',
         ],
       },
       {
@@ -47,8 +75,13 @@ export const LEGAL = {
             'Vercel, which hosts this website.',
             'Google Fonts, which serves the typefaces used on the site.',
             'Email and messaging providers we use to correspond with you.',
+            'Meta Platforms (WhatsApp Business Platform), which carries WhatsApp messages.',
+            'Google (Gemini) and Anthropic (Claude), which read card photos and voice notes and help interpret messages.',
+            'Render and Neon, which host the Platform’s application and database in Singapore.',
+            'Cloudflare, which stores card photos in private storage and serves website images.',
+            'Resend, which delivers emails sent by the Platform.',
           ],
-          'Some of these providers store data outside India. We only share data with providers that offer appropriate safeguards, and we may disclose information where required by law.',
+          'Some of these providers store or process data outside India, including in Singapore and the United States. We only share data with providers that offer appropriate safeguards, and we may disclose information where required by law. If our business changes hands, data may transfer to the new owner under this policy.',
         ],
       },
       {
@@ -61,6 +94,19 @@ export const LEGAL = {
         h: 'How long we keep it',
         body: [
           'We keep enquiry data for as long as needed to respond and follow up, and for up to 24 months afterwards unless you ask us to delete it sooner. Data related to a contract is kept for as long as the law requires.',
+          'On the Devliqly Platform, raw WhatsApp webhook data and background job records are deleted after 30 days. Leads, card photos and chats are kept while the business uses the Platform, until the business deletes them or asks us to. A record of people who opted out is kept so we can keep honouring that choice.',
+        ],
+      },
+      {
+        h: 'How to delete your data',
+        body: [
+          'You can ask us to delete your data at any time, without needing an account:',
+          [
+            `Email ${CONTACT.legal} with the subject "Data deletion" and include the phone number or email address the data is linked to. We will confirm your request and complete it within 30 days, except for anything the law requires us to keep.`,
+            'If a business scanned your card or contacted you through the Platform, you can also ask that business directly. Businesses can erase a person, including their card photos and related chats, from the CRM. If you write to us instead, we will act on it with that business.',
+            'If you connected a WhatsApp number through Facebook, you can disconnect it in the WhatsApp Business app or in Meta Business Suite, and remove Devliqly under Business Integrations in your Facebook settings. Then email us to have the data we received deleted.',
+            'To stop WhatsApp follow-ups, reply STOP. To stop follow-up emails, use the unsubscribe link in the email.',
+          ],
         ],
       },
       {
@@ -79,7 +125,7 @@ export const LEGAL = {
       {
         h: 'Security',
         body: [
-          'The site is served only over HTTPS, and access to enquiry data is limited to the people who need it. No method of transmission or storage is completely secure, but we take reasonable steps to protect your information.',
+          'The site and the Platform are served only over HTTPS, and access to enquiry data is limited to the people who need it. On the Platform, each business’s data is kept separate from other businesses, card photos are held in private storage, and incoming WhatsApp events are checked to confirm they came from Meta. No method of transmission or storage is completely secure, but we take reasonable steps to protect your information.',
         ],
       },
       {

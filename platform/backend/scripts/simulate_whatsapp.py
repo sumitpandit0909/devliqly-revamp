@@ -3,6 +3,8 @@
 uv run python scripts/simulate_whatsapp.py text --sender +919876543210 --body "Hello"
 uv run python scripts/simulate_whatsapp.py photo --sender +919876543210
 uv run python scripts/simulate_whatsapp.py text --sender +919876543210 --message-id wamid.same --times 3
+uv run python scripts/simulate_whatsapp.py voice --sender +919876543210
+uv run python scripts/simulate_whatsapp.py button --sender +919876543210 --button-id note:<card id>
 uv run python scripts/simulate_whatsapp.py receipt --message-id wamid.abc --status delivered
 """
 
@@ -35,6 +37,11 @@ def build_value(args: argparse.Namespace, line_id: str) -> dict:
     }
     if args.kind == "text":
         message |= {"type": "text", "text": {"body": args.body}}
+    elif args.kind == "voice":
+        message |= {"type": "audio", "audio": {"id": f"media-{uuid.uuid4().hex[:8]}", "mime_type": "audio/ogg"}}
+    elif args.kind == "button":
+        reply = {"id": args.button_id, "title": "Button"}
+        message |= {"type": "interactive", "interactive": {"type": "button_reply", "button_reply": reply}}
     else:
         message |= {"type": "image", "image": {"id": f"media-{uuid.uuid4().hex[:8]}", "mime_type": "image/jpeg"}}
     value["contacts"] = [{"profile": {"name": "Simulated Sender"}, "wa_id": sender}]
@@ -44,11 +51,12 @@ def build_value(args: argparse.Namespace, line_id: str) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("kind", choices=["text", "photo", "receipt"])
+    parser.add_argument("kind", choices=["text", "photo", "voice", "button", "receipt"])
     parser.add_argument("--sender", default="+919876543210")
     parser.add_argument("--body", default="Hello")
     parser.add_argument("--message-id")
     parser.add_argument("--status", default="delivered")
+    parser.add_argument("--button-id", default="")
     parser.add_argument("--times", type=int, default=1, help="Send the same event repeatedly, as a Meta retry would")
     parser.add_argument("--url", default="http://localhost:8000/webhooks/meta")
     args = parser.parse_args()

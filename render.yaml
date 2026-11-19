@@ -101,5 +101,49 @@ services:
         sync: false
       - key: WHATSAPP_APP_SECRET
         sync: false
+      # Must match the verify token saved in the Meta app's webhook settings
       - key: WHATSAPP_VERIFY_TOKEN
-        generateValue: true
+        sync: false
+      # Customers connecting their own WhatsApp number (Embedded Signup)
+      - key: META_APP_ID
+        value: "1664043868687217"
+      - key: META_SIGNUP_CONFIG_ID
+        sync: false
+      # Encrypts customers' WhatsApp tokens. A Fernet key; never change it once numbers are connected.
+      - key: TOKEN_ENCRYPTION_KEY
+        sync: false
+      # openrouter, gemini or anthropic
+      - key: AI_PROVIDER
+        value: openrouter
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_MODEL
+        value: deepseek/deepseek-v4.1-flash-1017
+      - key: OPENROUTER_VOICE_MODEL
+        value: google/gemini-2.5-flash-lite
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      # Private bucket for card photos, separate from the blog's public one
+      - key: R2_ACCOUNT_ID
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_BUCKET
+        sync: false
+      # Follow-up email through Gmail (an app password), or Resend when SMTP_HOST is empty
+      - key: EMAIL_FROM
+        sync: false
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USERNAME
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false

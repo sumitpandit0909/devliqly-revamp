@@ -42,10 +42,22 @@ class ClaimedJob:
 Handler = Callable[[AsyncSession, ClaimedJob], Awaitable[None]]
 _handlers: dict[str, Handler] = {}
 _wake = asyncio.Event()
+_daily_kinds: list[str] = []
 
 
 def job_handler(kind: str) -> Callable[[Handler], Handler]:
     def register(handler: Handler) -> Handler:
+        _handlers[kind] = handler
+        return handler
+
+    return register
+
+
+def daily_job(kind: str) -> Callable[[Handler], Handler]:
+    """A handler the worker queues once a day. The dedupe key stops restarts from queuing it twice."""
+
+    def register(handler: Handler) -> Handler:
+        _daily_kinds.append(kind)
         _handlers[kind] = handler
         return handler
 
@@ -65,13 +77,18 @@ async def enqueue(
     lock_key: str | None = None,
     dedupe_key: str | None = None,
     max_attempts: int = 6,
+    run_after: datetime | None = None,
 ) -> None:
-    """Add a job to the caller's transaction. The session must have system scope."""
-    await db.execute(
-        insert(Job)
-        .values(kind=kind, payload=payload, lock_key=lock_key, dedupe_key=dedupe_key, max_attempts=max_attempts)
-        .on_conflict_do_nothing(index_elements=[Job.dedupe_key])
-    )
+    """Add a job to the caller's transaction. The session must have system scope, or a customer's for the few kinds
+    a logged-in person can start (see the job_queue policies)."""
+    values = {"kind": kind, "payload": payload, "lock_key": lock_key, "dedupe_key": dedupe_key}
+    if run_after is not None:
+        values["run_after"] = run_after
+    statement = insert(Job).inline().values(**values, max_attempts=max_attempts)
+    if dedupe_key is not None:
+        # Postgres needs read access to check for a conflict, so customer sessions can't use a dedupe key
+        statement = statement.on_conflict_do_nothing(index_elements=[Job.dedupe_key])
+    await db.execute(statement)
 
 
 _RECOVER = text(
@@ -201,10 +218,20 @@ async def _seconds_until_next_job() -> float:
     return max(0.2, min((min(moments) - datetime.now(UTC)).total_seconds(), IDLE_CHECK_SECONDS))
 
 
+async def queue_daily_jobs() -> None:
+    today = datetime.now(UTC).date().isoformat()
+    async with standalone_session() as db:
+        await set_scope(db, system=True)
+        for kind in _daily_kinds:
+            await enqueue(db, kind, {}, dedupe_key=f"{kind}:{today}")
+        await db.commit()
+
+
 async def run_worker() -> None:
     """Runs for the life of the app. Waits on signals and timers rather than polling constantly."""
     slots = asyncio.Semaphore(get_settings().worker_concurrency)
     running: set[asyncio.Task] = set()
+    daily_done_on = None
 
     async def run_then_release(job: ClaimedJob) -> None:
         try:
@@ -217,6 +244,9 @@ async def run_worker() -> None:
         while True:
             _wake.clear()
             try:
+                if daily_done_on != datetime.now(UTC).date():
+                    await queue_daily_jobs()
+                    daily_done_on = datetime.now(UTC).date()
                 while True:
                     await slots.acquire()
                     job = await claim_job()

@@ -2,6 +2,7 @@ import asyncio
 import os
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 BASE = "postgresql://{user}@127.0.0.1:55432/platform_test"
@@ -20,6 +21,17 @@ os.environ.update(
     WHATSAPP_VERIFY_TOKEN="test-verify-token",
     WHATSAPP_DRY_RUN="false",
     WORKER_ENABLED="false",
+    AI_PROVIDER="",
+    EMAIL_DRY_RUN="false",
+    RESEND_API_KEY="test-resend",
+    EMAIL_FROM="hello@acme-demo.com",
+    # Likewise a developer's real mail server: tests use the fake Resend unless they set this themselves
+    SMTP_HOST="",
+    # Blank every AI key, so a developer's real keys in .env never get called from tests
+    GEMINI_API_KEY="",
+    ANTHROPIC_API_KEY="",
+    OPENROUTER_API_KEY="",
+    STORAGE_DIR=str(Path(tempfile.gettempdir()) / "platform-test-uploads"),
 )
 
 import httpx  # noqa: E402
@@ -28,6 +40,7 @@ from sqlalchemy import text  # noqa: E402
 from sqlalchemy.ext.asyncio import create_async_engine  # noqa: E402
 from sqlalchemy.pool import NullPool  # noqa: E402
 
+from app import ratelimit  # noqa: E402
 from app.accounts import add_user, issue_setup_url  # noqa: E402
 from app.config import asyncpg_url  # noqa: E402
 from app.db import set_scope, standalone_session  # noqa: E402
@@ -69,6 +82,7 @@ def pytest_sessionstart(session) -> None:
 
 @pytest.fixture(autouse=True)
 async def clean_tables():
+    ratelimit.reset()
     engine = owner_engine()
     async with engine.begin() as connection:
         await connection.execute(text("TRUNCATE organizations, users, webhook_inbox, job_queue CASCADE"))

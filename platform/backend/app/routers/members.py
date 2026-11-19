@@ -5,7 +5,7 @@ from sqlalchemy import func, select
 
 from app.accounts import add_membership, add_user, issue_setup_url
 from app.deps import Db, Org, OrgManager
-from app.models import Membership, Role
+from app.models import Membership, Organization, Role
 from app.schemas import MemberCreate, MemberCreated, MemberOut, MemberUpdate
 
 router = APIRouter(prefix="/api/org/members", tags=["team"])
@@ -27,6 +27,15 @@ def _may_manage(actor_role: Role, target_role: str) -> bool:
     return actor_role == Role.OWNER or target_role == Role.REP
 
 
+async def _check_seats(db: Db, org_id: uuid.UUID) -> None:
+    limit = await db.scalar(select(Organization.seat_limit).where(Organization.id == org_id))
+    used = await db.scalar(
+        select(func.count()).select_from(Membership).where(Membership.organization_id == org_id, Membership.is_active)
+    )
+    if used >= limit:
+        raise HTTPException(status.HTTP_409_CONFLICT, f"Your plan allows {limit} team members")
+
+
 @router.get("")
 async def list_members(db: Db, org: Org) -> list[MemberOut]:
     memberships = await db.scalars(
@@ -43,6 +52,7 @@ async def add_member(body: MemberCreate, db: Db, org: OrgManager) -> MemberCreat
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Owners and managers need an email to log in")
     if body.role == Role.REP and not body.phone:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "Reps need a WhatsApp phone number")
+    await _check_seats(db, org.org_id)
     user = await add_user(db, body)
     membership = await add_membership(db, org.org_id, user.id, Role(body.role))
     setup_url = await issue_setup_url(db, user.id) if user.email else None
@@ -73,6 +83,8 @@ async def update_member(member_id: uuid.UUID, body: MemberUpdate, db: Db, org: O
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Only an owner can change owners and managers")
 
     new_active = membership.is_active if body.is_active is None else body.is_active
+    if new_active and not membership.is_active:
+        await _check_seats(db, org.org_id)
     losing_owner = membership.role == Role.OWNER and membership.is_active and (new_role != Role.OWNER or not new_active)
     if losing_owner:
         other_owners = await db.scalar(

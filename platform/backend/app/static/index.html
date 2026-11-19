@@ -8,34 +8,43 @@
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
-    <main class="card">
-      <p class="brand">DEVLIQLY <span>Platform</span></p>
+    <div id="auth" class="centered" hidden>
+      <main class="card">
+        <p class="brand">DEVLIQLY <span>Platform</span></p>
 
-      <form id="login" hidden>
-        <h1>Log in</h1>
-        <label>Email <input name="email" type="email" autocomplete="username" required /></label>
-        <label>Password <input name="password" type="password" autocomplete="current-password" required /></label>
-        <button type="submit">Log in</button>
-      </form>
+        <form id="login" hidden>
+          <h1>Log in</h1>
+          <label>Email <input name="email" type="email" autocomplete="username" required /></label>
+          <label>Password <input name="password" type="password" autocomplete="current-password" required /></label>
+          <button type="submit">Log in</button>
+        </form>
 
-      <form id="setup" hidden>
-        <h1>Choose your password</h1>
-        <label>
-          New password (at least 10 characters)
-          <input name="password" type="password" autocomplete="new-password" minlength="10" required />
-        </label>
-        <button type="submit">Save password</button>
-      </form>
+        <form id="setup" hidden>
+          <h1>Choose your password</h1>
+          <label>
+            New password (at least 10 characters)
+            <input name="password" type="password" autocomplete="new-password" minlength="10" required />
+          </label>
+          <button type="submit">Save password</button>
+        </form>
 
-      <section id="home" hidden>
-        <h1 id="greeting"></h1>
-        <p class="muted" id="identity"></p>
-        <ul id="organizations"></ul>
-        <button type="button" id="logout" class="ghost">Log out</button>
-      </section>
+        <p id="message" role="alert" hidden></p>
+      </main>
+    </div>
 
-      <p id="message" role="alert" hidden></p>
-    </main>
+    <div id="shell" class="shell" hidden>
+      <aside class="side">
+        <p class="brand">DEVLIQLY <span>Platform</span></p>
+        <nav id="nav" aria-label="Main"></nav>
+        <div class="side-foot">
+          <label id="org-picker" hidden>Company <select id="org-select"></select></label>
+          <p class="muted small" id="identity"></p>
+          <button type="button" id="logout" class="ghost">Log out</button>
+        </div>
+      </aside>
+      <main id="view" class="view" tabindex="-1"></main>
+    </div>
+    <div id="toast" role="status" hidden></div>
     <script src="/app.js"></script>
   </body>
 </html>

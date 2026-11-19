@@ -12,13 +12,32 @@ from fastapi.staticfiles import StaticFiles
 from app.config import get_settings
 from app.db import get_engine
 from app.queue import run_worker
-from app.routers import auth, conversations, expo_events, health, members, meta_webhook, operator
+from app.routers import (
+    auth,
+    conversations,
+    dashboard,
+    expo_events,
+    followups,
+    health,
+    leads,
+    members,
+    meta_webhook,
+    operator,
+    reviews,
+    unsubscribe,
+    whatsapp_numbers,
+)
 
 STATIC_DIR = Path(__file__).parent / "static"
 
 SECURITY_HEADERS = {
+    # Facebook's script, frames and API are allowed only for the Embedded Signup pop-up that connects a WhatsApp number
     "Content-Security-Policy": (
-        "default-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
+        "default-src 'self'; img-src 'self' data: blob: https://*.facebook.com https://*.fbcdn.net; "
+        "script-src 'self' https://connect.facebook.net; "
+        "frame-src https://www.facebook.com https://web.facebook.com https://staticxx.facebook.com; "
+        "connect-src 'self' https://graph.facebook.com https://www.facebook.com; "
+        "frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
     ),
     "Referrer-Policy": "no-referrer",
     "X-Content-Type-Options": "nosniff",
@@ -80,6 +99,12 @@ def create_app() -> FastAPI:
     app.include_router(expo_events.router)
     app.include_router(conversations.router)
     app.include_router(meta_webhook.router)
+    app.include_router(leads.router)
+    app.include_router(reviews.router)
+    app.include_router(dashboard.router)
+    app.include_router(followups.router)
+    app.include_router(unsubscribe.router)
+    app.include_router(whatsapp_numbers.router)
     app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="site")
     return app
 

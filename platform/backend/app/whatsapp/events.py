@@ -2,6 +2,7 @@
 
 import hashlib
 import hmac
+from collections.abc import Collection
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 
@@ -26,6 +27,8 @@ class IncomingMessage:
     button_id: str | None = None
     quoted_provider_id: str | None = None
     extra: dict = field(default_factory=dict)
+    # Which of our numbers it arrived on: Devliqly's own, or a customer's
+    line_id: str | None = None
 
     @property
     def event_key(self) -> str:
@@ -40,6 +43,7 @@ class DeliveryReceipt:
     provider_id: str
     status: str
     error: str | None = None
+    line_id: str | None = None
 
     @property
     def event_key(self) -> str:
@@ -59,7 +63,7 @@ def _timestamp(value: object) -> str | None:
         return None
 
 
-def _read_message(raw: dict, names: dict[str, str]) -> IncomingMessage | None:
+def _read_message(raw: dict, names: dict[str, str], line_id: str) -> IncomingMessage | None:
     provider_id, sender, kind = raw.get("id"), raw.get("from"), raw.get("type")
     if not provider_id or not sender or not kind:
         return None
@@ -91,10 +95,11 @@ def _read_message(raw: dict, names: dict[str, str]) -> IncomingMessage | None:
         button_id=button_id,
         quoted_provider_id=(raw.get("context") or {}).get("id"),
         extra=extra,
+        line_id=line_id,
     )
 
 
-def _read_receipt(raw: dict) -> DeliveryReceipt | None:
+def _read_receipt(raw: dict, line_id: str) -> DeliveryReceipt | None:
     provider_id, status = raw.get("id"), raw.get("status")
     if not provider_id or not status:
         return None
@@ -102,22 +107,97 @@ def _read_receipt(raw: dict) -> DeliveryReceipt | None:
     error = None
     if errors and isinstance(errors[0], dict):
         error = f"{errors[0].get('code', 'unknown')}: {errors[0].get('title', '')}".strip()
-    return DeliveryReceipt(provider_id, status, error)
+    return DeliveryReceipt(provider_id, status, error, line_id)
 
 
-def read_delivery(body: dict, line_id: str) -> tuple[list[IncomingMessage], list[DeliveryReceipt]]:
-    """Pull messages and receipts for our number out of a webhook body. Anything unrecognised is skipped."""
-    messages: list[IncomingMessage] = []
-    receipts: list[DeliveryReceipt] = []
+def _changes(body: dict):
     for entry in body.get("entry") or []:
         for change in (entry or {}).get("changes") or []:
-            value = (change or {}).get("value") or {}
-            if (value.get("metadata") or {}).get("phone_number_id") != line_id:
-                continue
-            names = {
-                contact.get("wa_id"): (contact.get("profile") or {}).get("name")
-                for contact in value.get("contacts") or []
-            }
-            messages += [m for raw in value.get("messages") or [] if (m := _read_message(raw, names))]
-            receipts += [r for raw in value.get("statuses") or [] if (r := _read_receipt(raw))]
+            yield entry or {}, change or {}
+
+
+def read_delivery(body: dict, line_ids: str | Collection[str]) -> tuple[list[IncomingMessage], list[DeliveryReceipt]]:
+    """Pull messages and receipts for our numbers out of a webhook body. Anything unrecognised is skipped."""
+    wanted = {line_ids} if isinstance(line_ids, str) else set(line_ids)
+    messages: list[IncomingMessage] = []
+    receipts: list[DeliveryReceipt] = []
+    for _, change in _changes(body):
+        # Chat history from a WhatsApp Business app number looks like messages, but isn't new mail
+        if change.get("field", "messages") != "messages":
+            continue
+        value = change.get("value") or {}
+        line_id = (value.get("metadata") or {}).get("phone_number_id")
+        if line_id not in wanted:
+            continue
+        names = {
+            contact.get("wa_id"): (contact.get("profile") or {}).get("name") for contact in value.get("contacts") or []
+        }
+        messages += [m for raw in value.get("messages") or [] if (m := _read_message(raw, names, line_id))]
+        receipts += [r for raw in value.get("statuses") or [] if (r := _read_receipt(raw, line_id))]
     return messages, receipts
+
+
+def line_ids_in(body: dict) -> set[str]:
+    """Every number this body mentions, so only those are looked up."""
+    found = set()
+    for _, change in _changes(body):
+        if line_id := ((change.get("value") or {}).get("metadata") or {}).get("phone_number_id"):
+            found.add(str(line_id))
+    return found
+
+
+@dataclass(frozen=True)
+class AccountUpdate:
+    waba_id: str
+    event: str
+    reason: str | None = None
+
+
+def read_account_updates(body: dict) -> list[AccountUpdate]:
+    """A customer disconnecting, or reconnecting, their WhatsApp Business app number."""
+    updates = []
+    for entry, change in _changes(body):
+        if change.get("field") != "account_update":
+            continue
+        value = change.get("value") or {}
+        event = value.get("event")
+        waba_id = (value.get("waba_info") or {}).get("waba_id") or entry.get("id")
+        if not event or not waba_id:
+            continue
+        reason = (value.get("disconnection_info") or {}).get("reason")
+        updates.append(AccountUpdate(str(waba_id), str(event), reason))
+    return updates
+
+
+@dataclass(frozen=True)
+class HistoryProgress:
+    line_id: str
+    progress: int | None
+    not_shared: bool = False
+
+
+# The business chose not to share its chat history
+HISTORY_NOT_SHARED = 2593109
+
+
+def read_history_progress(body: dict) -> list[HistoryProgress]:
+    """How far a WhatsApp Business app number's history sync has got. The messages themselves aren't kept."""
+    found = []
+    for _, change in _changes(body):
+        if change.get("field") != "history":
+            continue
+        value = change.get("value") or {}
+        line_id = (value.get("metadata") or {}).get("phone_number_id")
+        if not line_id:
+            continue
+        for chunk in value.get("history") or []:
+            codes = {error.get("code") for error in chunk.get("errors") or [] if isinstance(error, dict)}
+            progress = (chunk.get("metadata") or {}).get("progress")
+            found.append(
+                HistoryProgress(
+                    str(line_id),
+                    int(progress) if isinstance(progress, int | str) and str(progress).isdigit() else None,
+                    HISTORY_NOT_SHARED in codes,
+                )
+            )
+    return found

@@ -9,6 +9,7 @@ from app.config import get_settings
 from app.db import clear_auth_lookup, set_scope
 from app.deps import CurrentUser, Db
 from app.models import LoginSession, Membership, PasswordSetupToken, User
+from app.ratelimit import PublicLimit
 from app.schemas import AccessToken, LoginRequest, MembershipSummary, MeOut, OrganizationOut, SetPasswordRequest
 from app.security import (
     create_access_token,
@@ -53,7 +54,7 @@ async def _start_session(db: Db, response: Response, user_id: uuid.UUID, family_
     return AccessToken(access_token=access_token, expires_in=expires_in)
 
 
-@router.post("/auth/login")
+@router.post("/auth/login", dependencies=[PublicLimit])
 async def login(body: LoginRequest, response: Response, db: Db) -> AccessToken:
     settings = get_settings()
     invalid = HTTPException(status.HTTP_401_UNAUTHORIZED, "Incorrect email or password")
@@ -140,7 +141,7 @@ async def logout(
     response.delete_cookie(REFRESH_COOKIE, path=REFRESH_PATH)
 
 
-@router.post("/auth/set-password", status_code=status.HTTP_204_NO_CONTENT)
+@router.post("/auth/set-password", dependencies=[PublicLimit], status_code=status.HTTP_204_NO_CONTENT)
 async def set_password(body: SetPasswordRequest, db: Db) -> None:
     await set_scope(db, auth_lookup=True)
     setup = await db.scalar(

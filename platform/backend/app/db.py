@@ -71,5 +71,20 @@ async def set_scope(
         await session.execute(text("SELECT set_config(:name, :value, true)"), {"name": name, "value": value})
 
 
+@asynccontextmanager
+async def only_this_customer(session: AsyncSession, org_id: uuid.UUID) -> AsyncIterator[None]:
+    """Inside a worker's transaction, drop to one customer's view while acting on something a person typed.
+
+    The worker normally sees every customer, so this makes the database itself refuse any cross-customer access.
+    """
+    await session.execute(text("SELECT set_config('app.system', '', true)"))
+    await set_scope(session, org_id=org_id)
+    try:
+        yield
+    finally:
+        await session.execute(text("SELECT set_config('app.org_id', '', true)"))
+        await set_scope(session, system=True)
+
+
 async def clear_auth_lookup(session: AsyncSession) -> None:
     await session.execute(text("SELECT set_config('app.auth_lookup', '', true)"))

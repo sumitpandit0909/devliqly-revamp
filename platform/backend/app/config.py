@@ -55,6 +55,56 @@ class Settings(BaseSettings):
     graph_api_version: str = "v23.0"
     # Development only: pretend to send, without calling Meta
     whatsapp_dry_run: bool = False
+    # Customers connecting their own number through Embedded Signup. The config ID comes from Facebook Login for
+    # Business → Configurations.
+    meta_app_id: str = ""
+    meta_signup_config_id: str = ""
+    # Encrypts customers' WhatsApp tokens in the database. Generate one with:
+    # python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+    token_encryption_key: str = ""
+
+    # gemini, anthropic, openrouter or, in development only, fake. Unset means photos wait for manual review.
+    ai_provider: str = ""
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-3.8-flash"
+    gemini_input_usd_per_mtok: float = 1.50
+    gemini_output_usd_per_mtok: float = 7.50
+    anthropic_api_key: str = ""
+    anthropic_model: str = "claude-haiku-5-5"
+    anthropic_input_usd_per_mtok: float = 0.10
+    anthropic_output_usd_per_mtok: float = 0.50
+    # OpenRouter reads cards and messages with openrouter_model. That model can't hear, so voice notes go to
+    # openrouter_voice_model, which must take audio. Prices are OpenRouter's listed rates for each model.
+    openrouter_api_key: str = ""
+    openrouter_model: str = "deepseek/deepseek-v4.1-flash-1017"
+    openrouter_input_usd_per_mtok: float = 0.006
+    openrouter_output_usd_per_mtok: float = 0.50
+    openrouter_voice_model: str = "google/gemini-2.5-flash-lite"
+    openrouter_voice_input_usd_per_mtok: float = 0.10
+    openrouter_voice_output_usd_per_mtok: float = 0.40
+
+    # Private Cloudflare R2 bucket for card photos. Without it, development stores them in storage_dir.
+    r2_account_id: str = ""
+    r2_access_key_id: str = ""
+    r2_secret_access_key: str = ""
+    r2_bucket: str = ""
+    storage_dir: str = ".uploads"
+
+    # Follow-up email. With SMTP_HOST set it goes through that mail server (for example Gmail), otherwise Resend.
+    email_from: str = ""
+    resend_api_key: str = ""
+    smtp_host: str = ""
+    # 587 uses STARTTLS, 465 uses TLS from the start
+    smtp_port: int = 587
+    smtp_username: str = ""
+    # For Gmail, an app password, not the account password
+    smtp_password: str = ""
+    # Development only: pretend to send, without contacting any mail service
+    email_dry_run: bool = False
+
+    login_attempts_per_minute: int = 20
+    # How long raw webhook payloads and finished jobs are kept
+    retention_days: int = 30
 
     worker_enabled: bool = True
     worker_concurrency: int = 4
@@ -76,6 +126,14 @@ class Settings(BaseSettings):
                 raise ValueError("PUBLIC_BASE_URL must use https in production")
             if self.whatsapp_dry_run:
                 raise ValueError("WHATSAPP_DRY_RUN can't be on in production")
+            if self.email_dry_run:
+                raise ValueError("EMAIL_DRY_RUN can't be on in production")
+            if self.meta_signup_config_id and not self.token_encryption_key:
+                raise ValueError("Set TOKEN_ENCRYPTION_KEY before customers can connect their WhatsApp numbers")
+            if self.ai_provider == "fake":
+                raise ValueError("AI_PROVIDER can't be fake in production")
+            if not self.r2_bucket:
+                raise ValueError("Set R2_BUCKET in production, so card photos stay in private storage")
         return self
 
     @property

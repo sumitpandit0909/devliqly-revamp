@@ -5,8 +5,11 @@ description = "Backend for the Devliqly platform, the CRM and Expo Agent at plat
 requires-python = ">=3.12,<3.14"
 dependencies = [
     "alembic>=1.20",
+    "anthropic>=1.0",
     "argon2-cffi>=25.1",
     "asyncpg>=0.32",
+    "boto3>=1.35",
+    "httpx>=0.27",
     "fastapi>=0.162,<1",
     "phonenumbers>=8.13",
     "pydantic-settings>=2.16",
@@ -14,6 +17,7 @@ dependencies = [
     "pyjwt>=2.15",
     "sqlalchemy[asyncio]>=2.1,<2.2",
     "uvicorn[standard]>=0.30",
+    "cryptography>=44",
 ]
 
 [tool.uv]
@@ -35,7 +39,7 @@ select = ["E", "F", "I", "B", "UP", "ASYNC", "S"]
 ignore = ["B008"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101", "S105", "S106", "S107"]
+"tests/*" = ["S101", "S105", "S106", "S107", "F811"]
 "migrations/*" = ["S608", "E501"]
 
 [dependency-groups]

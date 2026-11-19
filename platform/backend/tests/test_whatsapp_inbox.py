@@ -10,8 +10,8 @@ from sqlalchemy import text
 from app.db import standalone_session
 from app.queue import run_due_jobs
 from app.whatsapp import client as meta_client
+from app.whatsapp.conversation import HELP_TEXT, STRANGER_NOTICE
 from app.whatsapp.events import read_delivery
-from app.whatsapp.jobs import RECEIVED_REPLY, STRANGER_NOTICE
 from tests.conftest import activate, bearer, owner_engine
 
 LINE = "100200300"
@@ -53,11 +53,18 @@ class FakeMeta:
         self.responses: list[httpx.Response] = []
 
     def __call__(self, request: httpx.Request) -> httpx.Response:
+        if request.method == "GET":
+            return self._media(request)
         body = json.loads(request.content)
         self.calls.append(body)
         if self.responses:
             return self.responses.pop(0)
         return httpx.Response(200, json={"messages": [{"id": f"wamid.out.{len(self.calls)}"}]})
+
+    def _media(self, request: httpx.Request) -> httpx.Response:
+        if "download" in request.url.path:
+            return httpx.Response(200, content=b"photo-bytes")
+        return httpx.Response(200, json={"url": "https://media.test/download", "mime_type": "image/jpeg"})
 
     @property
     def texts(self) -> list[dict]:
@@ -175,14 +182,14 @@ async def test_message_is_saved_answered_and_marked_read(client, two_orgs, rep, 
     history = await rep_messages(client, two_orgs["a"]["token"])
     assert [(m["direction"], m["body"], m["status"]) for m in history] == [
         ("in", "Namaste", "received"),
-        ("out", RECEIVED_REPLY, "sent"),
+        ("out", HELP_TEXT, "sent"),
     ]
     assert meta.texts == [
         {
             "messaging_product": "whatsapp",
             "to": REP_PHONE.lstrip("+"),
             "type": "text",
-            "text": {"body": RECEIVED_REPLY, "preview_url": False},
+            "text": {"body": HELP_TEXT, "preview_url": False},
             "context": {"message_id": message["id"]},
         }
     ]

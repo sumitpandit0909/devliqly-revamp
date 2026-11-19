@@ -73,7 +73,9 @@ services:
   - type: web
     name: devliqly-platform
     runtime: python
-    plan: starter # A free instance sleeps, which would delay WhatsApp webhooks
+    # Free for now: it sleeps after 15 idle minutes (the first WhatsApp message then waits for it to wake) and Render
+    # blocks outgoing email ports, so follow-up email needs RESEND_API_KEY or the starter plan.
+    plan: free
     region: singapore
     rootDir: platform/backend
     buildCommand: pip install uv && uv sync --frozen --no-dev

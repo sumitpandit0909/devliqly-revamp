@@ -15,9 +15,9 @@ screen recording, a test API call and the data use checkup.
 1. **Facebook Login for Business configuration.** App Dashboard → Facebook Login for Business → Configurations →
    Create configuration. Choose the **WhatsApp Embedded Signup** login variation and tick both WhatsApp permissions.
    Copy its **Configuration ID** into `META_SIGNUP_CONFIG_ID` in `.env`, and the app ID into `META_APP_ID`.
-2. **Allowed domains.** Facebook Login for Business → Settings: add `https://platform.devliqly.in` and your ngrok
-   address under "Allowed domains for the JavaScript SDK", and turn on "Login with the JavaScript SDK". Facebook's
-   login only works over https, so test the button through ngrok or the live site, not `http://localhost`.
+2. **Allowed domains.** Facebook Login for Business → Settings: add `https://platform.devliqly.in` under "Allowed
+   domains for the JavaScript SDK", and turn on "Login with the JavaScript SDK". Facebook's login only works over
+   https, so test the button on the live site, not `http://localhost`.
 3. **Webhook fields.** WhatsApp → Configuration → Webhook fields: subscribe to `messages`, `account_update`,
    `history`, `smb_app_state_sync` and `smb_message_echoes`.
 4. **Test API calls.** The "API precheck" step wants at least one successful call with each permission in the last

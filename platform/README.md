@@ -150,6 +150,20 @@ uv run python scripts/simulate_whatsapp.py text --sender +919876543210 --message
 
 ## Hosting
 
+**Live today:** https://platform.devliqly.in runs as a Docker container on the AWS server `54.82.37.41` (t3.small, us-east-1), beside the Youri app. Its data is in the Neon project `devliqly-platform-us` (N. Virginia) and card photos in the private R2 bucket `devliqly-platform-cards`.
+
+- The container `devliqly-platform` listens on `127.0.0.1:8001`, capped at 400 MB, and restarts itself. nginx (`/etc/nginx/sites-available/devliqly-platform`) passes the domain to it, with a Let's Encrypt certificate that certbot renews.
+- Its settings are in `~/devliqly-platform/platform.env` on the server (owner-only). Nothing secret is in this repository.
+- To deploy a change, from `platform/backend/`:
+
+  ```bash
+  git ls-files -co --exclude-standard . | grep -vE '^(tests|scripts)/' | tar -cf - -T - | ssh -i ~/.ssh/youri-key.pem ubuntu@54.82.37.41 'rm -rf ~/devliqly-platform/src && mkdir -p ~/devliqly-platform/src && tar -xf - -C ~/devliqly-platform/src && cd ~/devliqly-platform/src && docker build -q -t devliqly-platform:latest . && docker rm -f devliqly-platform && docker run -d --name devliqly-platform --restart unless-stopped --env-file ~/devliqly-platform/platform.env -p 127.0.0.1:8001:8000 --memory 400m --memory-swap 600m --log-opt max-size=10m --log-opt max-file=3 devliqly-platform:latest'
+  ```
+
+  Migrations run when the container starts.
+
+The Render setup below was used first and is kept for reference; its service is no longer serving the domain.
+
 Render runs the backend (`devliqly-platform` in `/render.yaml`). It needs the paid Starter plan: a free instance sleeps, which would delay WhatsApp webhooks. Neon holds the data, in a project separate from the blog, in the Singapore region to sit next to Render.
 
 1. **Neon:** create a project named `devliqly-platform` in AWS Asia Pacific (Singapore). In its SQL editor, create the app role with a long random password:
